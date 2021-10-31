@@ -1,6 +1,7 @@
 # based on code from https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python
 
 import time
+import numpy as np
 
 
 class Game:
@@ -9,14 +10,23 @@ class Game:
     HUMAN = 2
     AI = 3
 
-    def __init__(self, recommend=True):
+    def __init__(self, n, b, barray, s, d1, d2, aiTimeout, recommend=True):
+        self.n = n
+        self.b = b
+        self.barray = barray
+        self.s = s
+        self.d1 = d1
+        self.d2 = d2
+        self.aiTimeout = aiTimeout
         self.initialize_game()
-        self.recommend = recommend
+        self.recommend = recommend        
 
     def initialize_game(self):
-        self.current_state = [['.', '.', '.'],
-                              ['.', '.', '.'],
-                              ['.', '.', '.']]
+        self.current_state = np.full((self.n, self.n), '.')   
+        print(self.current_state)                    
+        for x in self.b:           
+            self.current_state[x[0]][x[1]] = '~'
+
         # Player X always plays first
         self.player_turn = 'X'
 
@@ -221,11 +231,51 @@ class Game:
             self.current_state[x][y] = self.player_turn
             self.switch_player()
 
+class GameBuilder:      
+
+    def __init__(self, config_path):        
+        self.config_path = config_path             
+
+    def verify_board(self):
+        return (self.block_count <= 2*self.board_size and len(self.block_array) == self.block_count and self.win_length >= 3 and self.win_length <= self.board_size)   
+
+    def build_game(self):
+        try:
+            with open(self.config_path, 'r') as config:
+                for line in config:                    
+                    if (line.split('=')[0].equals("boardSize")):
+                        self.board_size = line.split('=')[1]                        
+                    elif (line.split('=')[0].equals("blockCount")):
+                        self.block_count = line.split('=')[1]                        
+                    elif (line.split('=')[0].equals("blockArray")):
+                        self.block_array = line.split('=')[1]                        
+                    elif (line.split('=')[0].equals("winLength")):
+                        self.win_length = line.split('=')[1]                        
+                    elif (line.split('=')[0].equals("maxDepthD1")):
+                        self.max_depthD1 = line.split('=')[1]                        
+                    elif (line.split('=')[0].equals("maxDepthD2")):
+                        self.max_depthD2 = line.split('=')[1]                        
+                    elif (line.split('=')[0].equals("aiTimeout")):
+                        self.ai_timeout = line.split('=')[1]                        
+                    elif (line.split('=')[0].equals("alphabeta")):
+                        self.alphabeta = line.split('=')[1]                        
+                    elif (line.split('=')[0].equals("p1")):
+                        self.p1 = line.split('=')[1]                        
+                    elif (line.split('=')[0].equals("p2")):
+                        self.p2 = line.split('=')[1]
+                config.close()                   
+        except:
+            print("Could not open file ", self.config_path)            
+        if verify_board():
+            return Game(self.board_size, self.block_count, self.block_array, self.win_length, self.max_depthD1, self.max_depthD2, self.ai_timeout, recommend=True)            else:
+        print("ERROR: Invalid game configuration.")      
 
 def main():
-    g = Game(recommend=True)
-    g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
-    g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
+    game_config = 'config.ini'
+    g = GameBuilder(game_config).build_game()
+    if (g != None):
+        g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
+        g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
 
 
 if __name__ == "__main__":
