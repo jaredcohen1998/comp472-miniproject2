@@ -10,14 +10,14 @@ class Game:
     HUMAN = 2
     AI = 3
 
-    def __init__(self, n, b, barray, s, d1, d2, aiTimeout, recommend=True):
+    def __init__(self, n, b, barray, s, d1, d2, ai_timeout, recommend=True):
         self.n = n
         self.b = b
         self.barray = barray
         self.s = s
         self.d1 = d1
         self.d2 = d2
-        self.aiTimeout = aiTimeout
+        self.ai_timeout = ai_timeout
         self.initialize_game()
         self.recommend = recommend        
 
@@ -32,14 +32,14 @@ class Game:
 
     def draw_board(self):
         print()
-        for y in range(0, 3):
-            for x in range(0, 3):
+        for y in range(0, self.n):
+            for x in range(0, self.n):
                 print(F'{self.current_state[x][y]}', end="")
             print()
         print()
 
     def is_valid(self, px, py):
-        if px < 0 or px > 2 or py < 0 or py > 2:
+        if px < 0 or px > self.n-1 or py < 0 or py > self.n-1:
             return False
         elif self.current_state[px][py] != '.':
             return False
@@ -48,30 +48,66 @@ class Game:
 
     def is_end(self):
         # Vertical win
-        for i in range(0, 3):
-            if (self.current_state[0][i] != '.' and
-                    self.current_state[0][i] == self.current_state[1][i] and
-                    self.current_state[1][i] == self.current_state[2][i]):
-                return self.current_state[0][i]
+        for i in range(0, self.n):
+            l = 0
+            di = -1
+            dj = -1            
+            for j in range(0, self.n):
+                if (l == self.s):
+                    return self.current_state[dj][di]
+                elif (l == 0 and (self.current_state[j][i] != '.' and self.current_state[j][i] != '~')):
+                    di = i
+                    dj = j
+                    l += 1
+                elif ((di > -1 and dj > -1) and (self.current_state[dj][di] == self.current_state[j][i])):
+                    l += 1
+                else:
+                    l = 0                    
         # Horizontal win
-        for i in range(0, 3):
-            if (self.current_state[i] == ['X', 'X', 'X']):
-                return 'X'
-            elif (self.current_state[i] == ['O', 'O', 'O']):
-                return 'O'
+        for i in range(0, self.n):
+            l = 0
+            di = -1
+            dj = -1            
+            for j in range(0, self.n):
+                if (l == self.s):
+                    return self.current_state[di][dj]
+                elif (l == 0 and (self.current_state[i][j] != '.' and self.current_state[i][j] != '~')):
+                    di = i
+                    dj = j
+                    l += 1
+                elif ((di > -1 and dj > -1) and (self.current_state[di][dj] == self.current_state[i][j])):
+                    l += 1
+                else:
+                    l = 0    
         # Main diagonal win
-        if (self.current_state[0][0] != '.' and
-                self.current_state[0][0] == self.current_state[1][1] and
-                self.current_state[0][0] == self.current_state[2][2]):
-            return self.current_state[0][0]
+        l = 0
+        di = -1
+        for i in range(0, self.n):
+            if (l == self.s):
+                return self.current_state[di][di]
+            elif (l == 0 and (self.current_state[i][i] != '.' and self.current_state[i][i] != '~')):
+                di = i
+                l += 1
+            elif (di > -1 and self.current_state[di][di] == self.current_state[i][i]):
+                l += 1
+            else:
+                l = 0        
         # Second diagonal win
-        if (self.current_state[0][2] != '.' and
-                self.current_state[0][2] == self.current_state[1][1] and
-                self.current_state[0][2] == self.current_state[2][0]):
-            return self.current_state[0][2]
+        l = 0
+        di = -1        
+        for i in range(0, self.n):
+            if (l == self.s):
+                return self.current_state[self.n-(di+1)][di]
+            elif (l == 0 and (self.current_state[self.n-(i+1)][i] != '.' and self.current_state[self.n-(i+1)][i] != '~')):
+                di = i
+                l += 1
+            elif (di > -1 and self.current_state[self.n-(di+1)][di] == self.current_state[self.n-(i+1)][i]):
+                l += 1
+            else:
+                l = 0   
         # Is whole board full?
-        for i in range(0, 3):
-            for j in range(0, 3):
+        for i in range(0, self.n):
+            for j in range(0, self.n):
                 # There's an empty field, we continue the game
                 if (self.current_state[i][j] == '.'):
                     return None
@@ -237,9 +273,9 @@ class GameBuilder:
         self.config_path = config_path             
 
     def verify_board(self):
-        return (self.block_count <= 2*self.board_size and len(self.block_array) == self.block_count and self.win_length >= 3 and self.win_length <= self.board_size)   
+        return (self.block_count <= 2*self.board_size and len(self.block_array) == self.block_count and self.win_length >= 3 and self.win_length <= self.board_size)        
 
-    def build_game(self):
+    def build_game(self):        
         try:
             with open(self.config_path, 'r') as config:
                 for line in config:                    
@@ -265,10 +301,11 @@ class GameBuilder:
                         self.p2 = line.split('=')[1]
                 config.close()                   
         except:
-            print("Could not open file ", self.config_path)            
-        if verify_board():
-            return Game(self.board_size, self.block_count, self.block_array, self.win_length, self.max_depthD1, self.max_depthD2, self.ai_timeout, recommend=True)            else:
-        print("ERROR: Invalid game configuration.")      
+            print("Could not open file ", self.config_path)                  
+        if self.verify_board():
+            return Game(self.board_size, self.block_count, self.block_array, self.win_length, self.max_depthD1, self.max_depthD2, self.ai_timeout, recommend=True)            
+        else:
+            print("ERROR: Invalid game configuration.")      
 
 def main():
     game_config = 'config.ini'
