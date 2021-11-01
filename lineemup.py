@@ -267,49 +267,43 @@ class Game:
             self.current_state[x][y] = self.player_turn
             self.switch_player()
 
-class GameBuilder:      
-
-    def __init__(self, config_path):        
-        self.config_path = config_path             
-
-    def verify_board(self):
-        return (self.block_count <= 2*self.board_size and len(self.block_array) == self.block_count and self.win_length >= 3 and self.win_length <= self.board_size)        
-
-    def build_game(self):        
+class GameBuilder:                    
+    
+    def build_game(config_path):        
         try:
-            with open(self.config_path, 'r') as config:
+            with open(config_path, 'r') as config:
                 for line in config:                    
                     if (line.split('=')[0].equals("boardSize")):
-                        self.board_size = line.split('=')[1]                        
+                        board_size = line.split('=')[1]                        
                     elif (line.split('=')[0].equals("blockCount")):
-                        self.block_count = line.split('=')[1]                        
+                        block_count = line.split('=')[1]                        
                     elif (line.split('=')[0].equals("blockArray")):
-                        self.block_array = line.split('=')[1]                        
+                        block_array = line.split('=')[1]                        
                     elif (line.split('=')[0].equals("winLength")):
-                        self.win_length = line.split('=')[1]                        
+                        win_length = line.split('=')[1]                        
                     elif (line.split('=')[0].equals("maxDepthD1")):
-                        self.max_depthD1 = line.split('=')[1]                        
+                        max_depthD1 = line.split('=')[1]                        
                     elif (line.split('=')[0].equals("maxDepthD2")):
-                        self.max_depthD2 = line.split('=')[1]                        
+                        max_depthD2 = line.split('=')[1]                        
                     elif (line.split('=')[0].equals("aiTimeout")):
-                        self.ai_timeout = line.split('=')[1]                        
+                        ai_timeout = line.split('=')[1]                        
                     elif (line.split('=')[0].equals("alphabeta")):
-                        self.alphabeta = line.split('=')[1]                        
+                        alphabeta = line.split('=')[1]                        
                     elif (line.split('=')[0].equals("p1")):
-                        self.p1 = line.split('=')[1]                        
+                        p1 = line.split('=')[1]                        
                     elif (line.split('=')[0].equals("p2")):
-                        self.p2 = line.split('=')[1]
+                        p2 = line.split('=')[1]
                 config.close()                   
         except:
-            print("Could not open file ", self.config_path)                  
-        if self.verify_board():
-            return Game(self.board_size, self.block_count, self.block_array, self.win_length, self.max_depthD1, self.max_depthD2, self.ai_timeout, recommend=True)            
+            print("ERROR: Could not open file ", config_path)                  
+        if (block_count <= 2*board_size and len(block_array) == block_count and win_length >= 3 and win_length <= board_size):
+            return(alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
         else:
             print("ERROR: Invalid game configuration.")      
 
 def main():
     game_config = 'config.ini'
-    g = GameBuilder(game_config).build_game()
+    algo, player_x, player_y, g = GameBuilder.build_game(game_config)
     if (g != None):
         g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
         g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
