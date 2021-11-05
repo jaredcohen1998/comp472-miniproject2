@@ -3,6 +3,7 @@
 import time
 import numpy as np
 import traceback
+import sys
 
 
 class Game:
@@ -20,11 +21,11 @@ class Game:
         self.d2 = d2
         self.ai_timeout = ai_timeout
         self.initialize_game()
-        self.recommend = recommend        
+        self.recommend = recommend
+        self.alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'][0:n]
 
     def initialize_game(self):
-        self.current_state = np.full((self.n, self.n), '.')   
-        print(self.current_state)                    
+        self.current_state = np.full((self.n, self.n), '.')                      
         for x in self.barray:           
             self.current_state[x[0]][x[1]] = '~'
 
@@ -33,19 +34,55 @@ class Game:
 
     def draw_board(self):
         print()
+        print('    |  ', end='')
+        
+        for x in range(0, self.n):
+            print(self.alphabet[x] + "  |  ", end='')
+
+        print()
+        print('-', end='')
+
+        for x in range(0, self.n):
+            print('-------', end='')
+
+        print()
+
         for y in range(0, self.n):
+            print(y, end='')
+
             for x in range(0, self.n):
-                print(F'{self.current_state[x][y]}', end=" ")
+                p = self.current_state[x][y].replace('.', ' ')
+                if (x == 0):
+                    print(F'   |  {p}  | ', end=" ")
+                else:
+                    print(F'{p}  | ', end=" ")
+            print()
+            for x in range(0, self.n):
+                print('-------', end='')
+
             print()
         print()
 
     def is_valid(self, px, py):
-        if px < 0 or px > self.n-1 or py < 0 or py > self.n-1:
-            return False
-        elif self.current_state[px][py] != '.':
-            return False
+        ipx = -1
+        for x in range(len(self.alphabet)):
+            if (self.alphabet[x] == px):
+                ipx = x
+                break
+
+        if (ipx == -1):
+            return (0, 0, False)
+
+        if (not py.isdigit()):
+            return (0, 0, False)
+        
+        py = int(py)
+        if ipx < 0 or ipx > self.n-1 or py < 0 or py > self.n-1:
+            return (0, 0, False)
+        elif self.current_state[ipx][py] != '.':
+            return (0, 0, False)
         else:
-            return True
+            return (ipx, py, True)
 
     def is_end(self):
         # Vertical win        
@@ -131,12 +168,14 @@ class Game:
     def input_move(self):
         while True:
             print(F'Player {self.player_turn}, enter your move:')
-            px = int(input('enter the x coordinate: '))
-            py = int(input('enter the y coordinate: '))
-            if self.is_valid(px, py):
-                return (px, py)
-            else:
-                print('The move is not valid! Try again.')
+            px = input('enter the x coordinate: ')
+            py = input('enter the y coordinate: ')
+
+            rpx, rpy, isv = self.is_valid(px, py)
+            if (isv):
+                return rpx, rpy
+
+            print('The move is not valid! Try again.')
 
     def switch_player(self):
         if self.player_turn == 'X':
@@ -234,12 +273,13 @@ class Game:
         return (value, x, y)
 
     def play(self, algo=None, player_x=None, player_o=None):
-        if algo == None:
-            algo = self.ALPHABETA
+        #if algo == None:
+            #algo = self.ALPHABETA
         if player_x == None:
             player_x = self.HUMAN
         if player_o == None:
             player_o = self.HUMAN
+
         while True:
             self.draw_board()           
             if self.check_end():
@@ -250,21 +290,22 @@ class Game:
                     (_, x, y) = self.minimax(max=False)
                 else:
                     (_, x, y) = self.minimax(max=True)
-            else:  # algo == self.ALPHABETA
+            elif algo == self.ALPHABETA:
                 if self.player_turn == 'X':
                     (m, x, y) = self.alphabeta(max=False)
                 else:
                     (m, x, y) = self.alphabeta(max=True)
+
             end = time.time()
             if (self.player_turn == 'X' and player_x == self.HUMAN) or (self.player_turn == 'O' and player_o == self.HUMAN):
                 if self.recommend:
                     print(F'Evaluation time: {round(end - start, 7)}s')
-                    print(F'Recommended move: x = {x}, y = {y}')
+                    print(F'Recommended move: {self.alphabet[x]} {y}')
                 (x, y) = self.input_move()
             if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
                 print(F'Evaluation time: {round(end - start, 7)}s')
-                print(
-                    F'Player {self.player_turn} under AI control plays: x = {x}, y = {y}')
+                print(F'Player {self.player_turn} under AI control plays: {self.alphabet[x]} {y}')
+
             self.current_state[x][y] = self.player_turn
             self.switch_player()
 
@@ -300,12 +341,37 @@ class GameBuilder:
         except Exception:
             print("ERROR: Could not open file", config_path) 
             print(traceback.format_exc())            
-            return (None, None, None, None)                     
-        if (block_count <= 2*board_size and len(block_array) == block_count and win_length >= 3 and win_length <= board_size):
-            return(alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
-        else:
-            print("ERROR: Invalid game configuration.")    
-            return (None, None, None, None)  
+            return (None, None, None, None)
+
+        # Size of board
+        if (board_size < 3 or board_size > 10):
+            print("ERROR: Invalid game configuration. Board size must be between 3 and 10 inclusive")    
+            return (None, None, None, None)
+
+        # Number of blocks
+        if (len(block_array) != block_count):
+            print("ERROR: Invalid game configuration. Number of blocks does not match block array in config file")    
+            return (None, None, None, None)
+
+        # Number of blocks
+        if (block_count < 0 or block_count > 2 * board_size):
+            print("ERROR: Invalid game configuration. Number of blocks placed must be between 0 and " + 2 * board_size + " inclusive")    
+            return (None, None, None, None)
+
+        # Validation for the blocks placed
+        for x in range(len(block_array)):
+            block_placed = block_array[x]
+            if (block_placed[0] >= board_size or block_placed[1] >= board_size):
+                print("ERROR: Invalid game configuration. Block " + str(block_placed) + " not placed inside board")    
+                return (None, None, None, None)
+
+        # Winning line up size
+        if (win_length < 3 or win_length > board_size):
+            print("ERROR: Invalid game configuration. Winning line up size must be between 3 and " + board_size + " inclusive")    
+            return (None, None, None, None)
+
+        #return(alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
+        return(alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=False))
 
 def main():
     game_config = "config.ini"    
