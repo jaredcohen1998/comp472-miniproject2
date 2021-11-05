@@ -2,6 +2,7 @@
 
 import time
 import numpy as np
+import traceback
 
 
 class Game:
@@ -24,7 +25,7 @@ class Game:
     def initialize_game(self):
         self.current_state = np.full((self.n, self.n), '.')   
         print(self.current_state)                    
-        for x in self.b:           
+        for x in self.barray:           
             self.current_state[x[0]][x[1]] = '~'
 
         # Player X always plays first
@@ -34,7 +35,7 @@ class Game:
         print()
         for y in range(0, self.n):
             for x in range(0, self.n):
-                print(F'{self.current_state[x][y]}', end="")
+                print(F'{self.current_state[x][y]}', end=" ")
             print()
         print()
 
@@ -47,7 +48,7 @@ class Game:
             return True
 
     def is_end(self):
-        # Vertical win
+        # Vertical win        
         for i in range(0, self.n):
             l = 0
             di = -1
@@ -109,7 +110,7 @@ class Game:
         for i in range(0, self.n):
             for j in range(0, self.n):
                 # There's an empty field, we continue the game
-                if (self.current_state[i][j] == '.'):
+                if (self.current_state[i][j] == '.'):                   
                     return None
         # It's a tie!
         return '.'
@@ -163,8 +164,8 @@ class Game:
             return (1, x, y)
         elif result == '.':
             return (0, x, y)
-        for i in range(0, 3):
-            for j in range(0, 3):
+        for i in range(0, self.n):
+            for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
                     if max:
                         self.current_state[i][j] = 'O'
@@ -194,16 +195,16 @@ class Game:
         if max:
             value = -2
         x = None
-        y = None
-        result = self.is_end()
+        y = None        
+        result = self.is_end()        
         if result == 'X':
             return (-1, x, y)
         elif result == 'O':
             return (1, x, y)
         elif result == '.':
             return (0, x, y)
-        for i in range(0, 3):
-            for j in range(0, 3):
+        for i in range(0, self.n):
+            for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
                     if max:
                         self.current_state[i][j] = 'O'
@@ -240,9 +241,9 @@ class Game:
         if player_o == None:
             player_o = self.HUMAN
         while True:
-            self.draw_board()
+            self.draw_board()           
             if self.check_end():
-                return
+                return            
             start = time.time()
             if algo == self.MINIMAX:
                 if self.player_turn == 'X':
@@ -267,46 +268,51 @@ class Game:
             self.current_state[x][y] = self.player_turn
             self.switch_player()
 
-class GameBuilder:                    
-    
+class GameBuilder:                                
+
     def build_game(config_path):        
         try:
-            with open(config_path, 'r') as config:
+            with open(config_path, "r") as config:
                 for line in config:                    
-                    if (line.split('=')[0].equals("boardSize")):
-                        board_size = line.split('=')[1]                        
-                    elif (line.split('=')[0].equals("blockCount")):
-                        block_count = line.split('=')[1]                        
-                    elif (line.split('=')[0].equals("blockArray")):
-                        block_array = line.split('=')[1]                        
-                    elif (line.split('=')[0].equals("winLength")):
-                        win_length = line.split('=')[1]                        
-                    elif (line.split('=')[0].equals("maxDepthD1")):
-                        max_depthD1 = line.split('=')[1]                        
-                    elif (line.split('=')[0].equals("maxDepthD2")):
-                        max_depthD2 = line.split('=')[1]                        
-                    elif (line.split('=')[0].equals("aiTimeout")):
-                        ai_timeout = line.split('=')[1]                        
-                    elif (line.split('=')[0].equals("alphabeta")):
-                        alphabeta = line.split('=')[1]                        
-                    elif (line.split('=')[0].equals("p1")):
-                        p1 = line.split('=')[1]                        
-                    elif (line.split('=')[0].equals("p2")):
+                    if (line.split('=')[0] == "boardSize"):
+                        board_size = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "blockCount"):
+                        block_count = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "blockArray"):
+                        temp = iter(line.split('=')[1].split())
+                        block_array = [(int(ele.split(",")[0]), int(ele.split(",")[1])) for ele in temp]
+                    elif (line.split('=')[0] == "winLength"):
+                        win_length = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "maxDepthD1"):
+                        max_depthD1 = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "maxDepthD2"):
+                        max_depthD2 = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "aiTimeout"):
+                        ai_timeout = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "alphabeta"):
+                        alphabeta = line.split('=')[1]
+                    elif (line.split('=')[0] == "p1"):
+                        p1 = line.split('=')[1]
+                    elif (line.split('=')[0] == "p2"):
                         p2 = line.split('=')[1]
+                
                 config.close()                   
-        except:
-            print("ERROR: Could not open file ", config_path)                  
+        except Exception:
+            print("ERROR: Could not open file", config_path) 
+            print(traceback.format_exc())            
+            return (None, None, None, None)                     
         if (block_count <= 2*board_size and len(block_array) == block_count and win_length >= 3 and win_length <= board_size):
             return(alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
         else:
-            print("ERROR: Invalid game configuration.")      
+            print("ERROR: Invalid game configuration.")    
+            return (None, None, None, None)  
 
 def main():
-    game_config = 'config.ini'
-    algo, player_x, player_y, g = GameBuilder.build_game(game_config)
-    if (g != None):
-        g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
-        g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
+    game_config = "config.ini"    
+    alphabeta, px, py, g = GameBuilder.build_game(game_config)    
+    if (g != None):        
+        g.play(algo=Game.ALPHABETA, player_x=(Game.HUMAN if px.lower() == "h" else Game.AI), player_o=(Game.HUMAN if py.lower() == "h" else Game.AI))
+        #g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
 
 
 if __name__ == "__main__":
