@@ -53,59 +53,59 @@ class Game:
             l = 0
             di = -1
             dj = -1            
-            for j in range(0, self.n):
-                if (l == self.s):
-                    return self.current_state[dj][di]
-                elif (l == 0 and (self.current_state[j][i] != '.' and self.current_state[j][i] != '~')):
+            for j in range(0, self.n):                                  
+                if (l == 0 and (self.current_state[j][i] != '.' and self.current_state[j][i] != '~')):
                     di = i
                     dj = j
                     l += 1
                 elif ((di > -1 and dj > -1) and (self.current_state[dj][di] == self.current_state[j][i])):
                     l += 1
                 else:
-                    l = 0                    
+                    l = 0  
+                if (l == self.s):
+                    return self.current_state[dj][di]                              
         # Horizontal win
         for i in range(0, self.n):
             l = 0
             di = -1
             dj = -1            
-            for j in range(0, self.n):
-                if (l == self.s):
-                    return self.current_state[di][dj]
-                elif (l == 0 and (self.current_state[i][j] != '.' and self.current_state[i][j] != '~')):
+            for j in range(0, self.n):                                
+                if (l == 0 and (self.current_state[i][j] != '.' and self.current_state[i][j] != '~')):
                     di = i
                     dj = j
                     l += 1
                 elif ((di > -1 and dj > -1) and (self.current_state[di][dj] == self.current_state[i][j])):
                     l += 1
                 else:
-                    l = 0    
+                    l = 0
+                if (l == self.s):
+                    return self.current_state[di][dj]                   
         # Main diagonal win
         l = 0
         di = -1
-        for i in range(0, self.n):
-            if (l == self.s):
-                return self.current_state[di][di]
-            elif (l == 0 and (self.current_state[i][i] != '.' and self.current_state[i][i] != '~')):
+        for i in range(0, self.n):                         
+            if (l == 0 and (self.current_state[i][i] != '.' and self.current_state[i][i] != '~')):
                 di = i
                 l += 1
             elif (di > -1 and self.current_state[di][di] == self.current_state[i][i]):
                 l += 1
             else:
-                l = 0        
+                l = 0    
+            if (l == self.s):
+                return self.current_state[di][di]               
         # Second diagonal win
         l = 0
         di = -1        
-        for i in range(0, self.n):
-            if (l == self.s):
-                return self.current_state[self.n-(di+1)][di]
-            elif (l == 0 and (self.current_state[self.n-(i+1)][i] != '.' and self.current_state[self.n-(i+1)][i] != '~')):
+        for i in range(0, self.n):                      
+            if (l == 0 and (self.current_state[self.n-(i+1)][i] != '.' and self.current_state[self.n-(i+1)][i] != '~')):
                 di = i
                 l += 1
             elif (di > -1 and self.current_state[self.n-(di+1)][di] == self.current_state[self.n-(i+1)][i]):
                 l += 1
             else:
                 l = 0   
+            if (l == self.s):
+                return self.current_state[self.n-(di+1)][di]              
         # Is whole board full?
         for i in range(0, self.n):
             for j in range(0, self.n):
@@ -290,11 +290,11 @@ class GameBuilder:
                     elif (line.split('=')[0] == "aiTimeout"):
                         ai_timeout = int(line.split('=')[1])
                     elif (line.split('=')[0] == "alphabeta"):
-                        alphabeta = line.split('=')[1]
+                        alphabeta = int(line.split('=')[1])
                     elif (line.split('=')[0] == "p1"):
-                        p1 = line.split('=')[1]
+                        p1 = int(line.split('=')[1])
                     elif (line.split('=')[0] == "p2"):
-                        p2 = line.split('=')[1]
+                        p2 = int(line.split('=')[1])
                 
                 config.close()                   
         except Exception:
@@ -309,9 +309,9 @@ class GameBuilder:
 
 def main():
     game_config = "config.ini"    
-    alphabeta, px, py, g = GameBuilder.build_game(game_config)    
+    algorithm, px, py, g = GameBuilder.build_game(game_config)    
     if (g != None):        
-        g.play(algo=Game.ALPHABETA, player_x=(Game.HUMAN if px.lower() == "h" else Game.AI), player_o=(Game.HUMAN if py.lower() == "h" else Game.AI))
+        g.play(algo=algorithm, player_x=px, player_o=py)
         #g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
 
 
