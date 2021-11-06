@@ -33,34 +33,34 @@ class Game:
         self.player_turn = 'X'
 
     def draw_board(self):
-        print()
-        print('    |  ', end='')
-        
+        # Print column headers (from the alphabet)
+        print('\n    |  ', end='')
         for x in range(0, self.n):
             print(self.alphabet[x] + "  |  ", end='')
 
-        print()
-        print('-', end='')
+        # Add the row separator
+        # We will need this for every row, so store it in a variable
+        rowsep = '-'
+        for _ in range(0, self.n):
+            rowsep = rowsep + '-------'
 
-        for x in range(0, self.n):
-            print('-------', end='')
-
-        print()
+        print('\n' + rowsep)
 
         for y in range(0, self.n):
+            # Print row headers (0-n)
             print(y, end='')
 
             for x in range(0, self.n):
-                p = self.current_state[x][y].replace('.', ' ')
+                p = self.current_state[x][y].replace('.', ' ') # In code, we have a '.' representing a blank square, however, we can just show a blank square to the user
+
+                # Print the actual contents of the board
                 if (x == 0):
                     print(F'   |  {p}  | ', end=" ")
                 else:
                     print(F'{p}  | ', end=" ")
-            print()
-            for x in range(0, self.n):
-                print('-------', end='')
 
-            print()
+            print('\n' + rowsep)
+
         print()
 
     def is_valid(self, px, py):
@@ -154,6 +154,7 @@ class Game:
 
     def check_end(self):
         self.result = self.is_end()
+
         # Printing the appropriate message if the game has ended
         if self.result != None:
             if self.result == 'X':
@@ -163,19 +164,21 @@ class Game:
             elif self.result == '.':
                 print("It's a tie!")
             self.initialize_game()
+
         return self.result
 
     def input_move(self):
+        print(F'Player {self.player_turn}, enter your move:')
+
         while True:
-            print(F'Player {self.player_turn}, enter your move:')
-            px = input('enter the x coordinate: ')
-            py = input('enter the y coordinate: ')
+            px = input(F'  Enter the column ({self.alphabet[0]} - {self.alphabet[-1]}): ')
+            py = input(F'  Enter the row (0 - {self.n - 1}): ')
 
             rpx, rpy, isv = self.is_valid(px, py)
             if (isv):
                 return rpx, rpy
 
-            print('The move is not valid! Try again.')
+            print('\n  ERROR: The move is not valid! Try again.\n')
 
     def switch_player(self):
         if self.player_turn == 'X':
@@ -278,20 +281,9 @@ class Game:
     # the score will be exponentially increased
     # Also, a move which blocks a streak is good
     # The problem with this heuristic is that it doesn't take into account blocks, the winning length, and the diagonals
+    # However, it is very fast to calculate
     def simple_heuristic(self):
         score = 0
-
-        # Testing heuristic function
-        # Feel free to test this out with different values of X/O and add your own
-        #self.current_state[0][0] = 'X'
-        #self.current_state[1][0] = 'O'
-        #self.current_state[0][1] = 'O'
-        #self.current_state[2][0] = 'X'
-        #self.current_state[2][1] = 'X'
-        #self.current_state[3][1] = 'X'
-        #self.current_state[2][2] = 'X'
-        #self.current_state[3][2] = 'O'
-        #self.draw_board()
 
         # Rows
         for y in range(self.n):
@@ -339,7 +331,6 @@ class Game:
                             s = s + (m / 2) # a move which blocks the opposing color streak is a good move for us
                             m = 10
 
-
                     s = s + m
                     prevState = self.current_state[x][y]
 
@@ -351,13 +342,11 @@ class Game:
                             s = s - (m / 2) # a move which blocks our color streak is a bad move for us
                             m = 10
 
-
                     s = s - m
                     prevState = self.current_state[x][y]
 
             score = score + s
-        
-        #print(score)
+
         return score
 
     # Complex heuristic
@@ -365,25 +354,18 @@ class Game:
         print("TODO")
 
     def play(self, algo=None, player_x=None, player_o=None):
-        #if algo == None:
-            #algo = self.ALPHABETA
+        if algo == None:
+            algo = self.ALPHABETA
         if player_x == None:
             player_x = self.HUMAN
         if player_o == None:
             player_o = self.HUMAN
 
-        #start = time.time()
-        #for i in range(100000):
-            #self.simple_heuristic()
-
-        #end = time.time()
-        #print(F'simple_heuristic() ran 100000 times took {round(end - start, 7)}s')
-        #return
-
         while True:
             self.draw_board()           
             if self.check_end():
-                return            
+                return
+
             start = time.time()
             if algo == self.MINIMAX:
                 if self.player_turn == 'X':
@@ -397,10 +379,12 @@ class Game:
                     (m, x, y) = self.alphabeta(max=True)
 
             end = time.time()
+
             if (self.player_turn == 'X' and player_x == self.HUMAN) or (self.player_turn == 'O' and player_o == self.HUMAN):
                 if self.recommend:
                     print(F'Evaluation time: {round(end - start, 7)}s')
                     print(F'Recommended move: {self.alphabet[x]} {y}')
+
                 (x, y) = self.input_move()
             if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
                 print(F'Evaluation time: {round(end - start, 7)}s')
@@ -409,8 +393,7 @@ class Game:
             self.current_state[x][y] = self.player_turn
             self.switch_player()
 
-class GameBuilder:                                
-
+class GameBuilder:
     def build_game(config_path):        
         try:
             with open(config_path, "r") as config:
@@ -440,7 +423,7 @@ class GameBuilder:
                 config.close()                   
         except Exception:
             print("ERROR: Could not open file", config_path) 
-            print(traceback.format_exc())            
+            print(traceback.format_exc())
             return (None, None, None, None)
 
         # Size of board
@@ -470,16 +453,13 @@ class GameBuilder:
             print("ERROR: Invalid game configuration. Winning line up size must be between 3 and " + board_size + " inclusive")    
             return (None, None, None, None)
 
-        #return(alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
-        return(alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=False))
+        return (alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
 
 def main():
     game_config = "config.ini"    
-    algorithm, px, py, g = GameBuilder.build_game(game_config)    
+    algorithm, px, py, g = GameBuilder.build_game(game_config)
     if (g != None):        
         g.play(algo=algorithm, player_x=px, player_o=py)
-        #g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
-
 
 if __name__ == "__main__":
     main()
