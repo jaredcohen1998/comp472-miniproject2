@@ -234,8 +234,8 @@ class Game:
         if max:
             value = -2
         x = None
-        y = None        
-        result = self.is_end()        
+        y = None
+        result = self.is_end()
         if result == 'X':
             return (-1, x, y)
         elif result == 'O':
@@ -272,6 +272,98 @@ class Game:
                             beta = value
         return (value, x, y)
 
+    # Simple heuristic
+    # The idea is to check rows-columns only
+    # If we have a 'streak' going (a row/column without an opposing piece)
+    # the score will be exponentially increased
+    # Also, a move which blocks a streak is good
+    # The problem with this heuristic is that it doesn't take into account blocks, the winning length, and the diagonals
+    def simple_heuristic(self):
+        score = 0
+
+        # Testing heuristic function
+        # Feel free to test this out with different values of X/O and add your own
+        #self.current_state[0][0] = 'X'
+        #self.current_state[1][0] = 'O'
+        #self.current_state[0][1] = 'O'
+        #self.current_state[2][0] = 'X'
+        #self.current_state[2][1] = 'X'
+        #self.current_state[3][1] = 'X'
+        #self.current_state[2][2] = 'X'
+        #self.current_state[3][2] = 'O'
+        #self.draw_board()
+
+        # Rows
+        for y in range(self.n):
+            s = 0
+            m = 10
+            prevState = "~"
+
+            for x in range(self.n):
+                if (self.current_state[x][y] == 'X'):
+                    if (prevState == 'X'):
+                        m = m * 10
+                    else:
+                        if (prevState == 'O'):
+                            s = s + (m / 2) # a move which blocks the opposing color streak is a good move for us
+                            m = 10
+
+                    s = s + m
+                    prevState = self.current_state[x][y]
+
+                elif (self.current_state[x][y] == 'O'):
+                    if (prevState == 'O'):
+                        m = m * 10
+                    else:
+                        if (prevState == 'X'):
+                            s = s - (m / 2) # a move which blocks our color streak is a bad move for us
+                            m = 10
+
+                    s = s - m
+                    prevState = self.current_state[x][y]
+
+            score = score + s
+
+        # Columns
+        for x in range(self.n):
+            s = 0
+            m = 10
+            prevState = "~"
+
+            for y in range(self.n):
+                if (self.current_state[x][y] == 'X'):
+                    if (prevState == 'X'):
+                        m = m * 10
+                    else:
+                        if (prevState == 'O'):
+                            s = s + (m / 2) # a move which blocks the opposing color streak is a good move for us
+                            m = 10
+
+
+                    s = s + m
+                    prevState = self.current_state[x][y]
+
+                elif (self.current_state[x][y] == 'O'):
+                    if (prevState == 'O'):
+                        m = m * 10
+                    else:
+                        if (prevState == 'X'):
+                            s = s - (m / 2) # a move which blocks our color streak is a bad move for us
+                            m = 10
+
+
+                    s = s - m
+                    prevState = self.current_state[x][y]
+
+            score = score + s
+        
+        #print(score)
+        return score
+
+    # Complex heuristic
+    def complex_heuristic():
+        print("TODO")
+
     def play(self, algo=None, player_x=None, player_o=None):
         #if algo == None:
             #algo = self.ALPHABETA
@@ -279,6 +371,14 @@ class Game:
             player_x = self.HUMAN
         if player_o == None:
             player_o = self.HUMAN
+
+        #start = time.time()
+        #for i in range(100000):
+            #self.simple_heuristic()
+
+        #end = time.time()
+        #print(F'simple_heuristic() ran 100000 times took {round(end - start, 7)}s')
+        #return
 
         while True:
             self.draw_board()           
