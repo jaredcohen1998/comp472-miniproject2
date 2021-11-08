@@ -286,32 +286,34 @@ class Game:
     # However, it is very fast to calculate
     def simple_heuristic(self):
         score = 0
+        cs = 0
 
         # Rows
         for y in range(self.n):
             s = 0
-            m = 10
+            m = 2
             prevState = "~"
 
             for x in range(self.n):
                 if (self.current_state[x][y] == 'X'):
                     if (prevState == 'X'):
-                        m = m * 10
-                    else:
-                        if (prevState == 'O'):
-                            s = s + (m / 2) # a move which blocks the opposing color streak is a good move for us
-                            m = 10
+                        m = m << 1
+                        cs = cs + 1
+                    elif (prevState == 'O'):
+                        s = s + (m >> cs) # a move which blocks the opposing color streak is a good move for us
+                        m = 2
+                        cs = 0
 
                     s = s + m
                     prevState = self.current_state[x][y]
-
                 elif (self.current_state[x][y] == 'O'):
-                    if (prevState == 'O'):
-                        m = m * 10
-                    else:
-                        if (prevState == 'X'):
-                            s = s - (m / 2) # a move which blocks our color streak is a bad move for us
-                            m = 10
+                    if (prevState == 'X'):
+                        m = m << 1
+                        cs = cs + 1
+                    elif (prevState == 'O'):
+                        s = s - (m >> cs) # a move which blocks our color streak is a bad move for us
+                        m = 2
+                        cs = 0
 
                     s = s - m
                     prevState = self.current_state[x][y]
@@ -321,28 +323,29 @@ class Game:
         # Columns
         for x in range(self.n):
             s = 0
-            m = 10
+            m = 2
             prevState = "~"
 
             for y in range(self.n):
                 if (self.current_state[x][y] == 'X'):
                     if (prevState == 'X'):
-                        m = m * 10
-                    else:
-                        if (prevState == 'O'):
-                            s = s + (m / 2) # a move which blocks the opposing color streak is a good move for us
-                            m = 10
+                        m = m << 1
+                        cs = cs + 1
+                    elif (prevState == 'O'):
+                        s = s + (m >> cs) # a move which blocks the opposing color streak is a good move for us
+                        m = 2
+                        cs = 0
 
                     s = s + m
                     prevState = self.current_state[x][y]
-
                 elif (self.current_state[x][y] == 'O'):
-                    if (prevState == 'O'):
-                        m = m * 10
-                    else:
-                        if (prevState == 'X'):
-                            s = s - (m / 2) # a move which blocks our color streak is a bad move for us
-                            m = 10
+                    if (prevState == 'X'):
+                        m = m << 1
+                        cs = cs + 1
+                    elif (prevState == 'O'):
+                        s = s - (m >> cs) # a move which blocks our color streak is a bad move for us
+                        m = 2
+                        cs = 0
 
                     s = s - m
                     prevState = self.current_state[x][y]
@@ -468,6 +471,10 @@ class GameBuilder:
         return (alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
 
 def main():
+    x = 2
+    print(x << 1)
+    x = x << 1
+    print(x << 1)
     game_config = "config.ini"    
     algorithm, px, py, g = GameBuilder.build_game(game_config)
     if (g != None):        
