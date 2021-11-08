@@ -286,12 +286,12 @@ class Game:
     # However, it is very fast to calculate
     def simple_heuristic(self):
         score = 0
-        cs = 0
 
         # Rows
         for y in range(self.n):
             s = 0
             m = 2
+            cs = 0
             prevState = "~"
 
             for x in range(self.n):
@@ -324,6 +324,7 @@ class Game:
         for x in range(self.n):
             s = 0
             m = 2
+            cs = 0
             prevState = "~"
 
             for y in range(self.n):
