@@ -275,6 +275,7 @@ class Game:
                             return (value, x, y)
                         if value < beta:
                             beta = value
+
         return (value, x, y)
 
     # Simple heuristic
@@ -282,9 +283,22 @@ class Game:
     # If we have a 'streak' going (a row/column without an opposing piece)
     # the score will be exponentially increased
     # Also, a move which blocks a streak is good
-    # The problem with this heuristic is that it doesn't take into account blocks, the winning length, and the diagonals
+    # The problem with this heuristic is that it doesn't take into account blocks, the winning length, the diagonals, and the board size
     # However, it is very fast to calculate
-    def simple_heuristic(self):
+    def simple_heuristic(self, testing=False):
+        if (testing == True):
+            self.current_state[0][0] = 'X'
+            self.current_state[1][0] = 'X'
+            #self.current_state[0][3] = 'X'
+            self.current_state[0][1] = 'X'
+            self.current_state[2][0] = 'O'
+            #self.current_state[3][0] = 'X'
+            #self.current_state[4][0] = 'O'
+            #self.current_state[2][0] = 'O'
+            #self.current_state[0][2] = 'O'
+            #self.current_state[0][3] = 'O'
+            self.draw_board()
+
         score = 0
 
         # Rows
@@ -295,28 +309,7 @@ class Game:
             prevState = "~"
 
             for x in range(self.n):
-                if (self.current_state[x][y] == 'X'):
-                    if (prevState == 'X'):
-                        m = m << 1
-                        cs = cs + 1
-                    elif (prevState == 'O'):
-                        s = s + (m >> cs) # a move which blocks the opposing color streak is a good move for us
-                        m = 2
-                        cs = 0
-
-                    s = s + m
-                    prevState = self.current_state[x][y]
-                elif (self.current_state[x][y] == 'O'):
-                    if (prevState == 'X'):
-                        m = m << 1
-                        cs = cs + 1
-                    elif (prevState == 'O'):
-                        s = s - (m >> cs) # a move which blocks our color streak is a bad move for us
-                        m = 2
-                        cs = 0
-
-                    s = s - m
-                    prevState = self.current_state[x][y]
+                s, m, cs, prevState = self.simple_heuristic_evaluator(x, y, s, m, cs, prevState)
 
             score = score + s
 
@@ -328,32 +321,41 @@ class Game:
             prevState = "~"
 
             for y in range(self.n):
-                if (self.current_state[x][y] == 'X'):
-                    if (prevState == 'X'):
-                        m = m << 1
-                        cs = cs + 1
-                    elif (prevState == 'O'):
-                        s = s + (m >> cs) # a move which blocks the opposing color streak is a good move for us
-                        m = 2
-                        cs = 0
-
-                    s = s + m
-                    prevState = self.current_state[x][y]
-                elif (self.current_state[x][y] == 'O'):
-                    if (prevState == 'X'):
-                        m = m << 1
-                        cs = cs + 1
-                    elif (prevState == 'O'):
-                        s = s - (m >> cs) # a move which blocks our color streak is a bad move for us
-                        m = 2
-                        cs = 0
-
-                    s = s - m
-                    prevState = self.current_state[x][y]
+                s, m, cs, prevState = self.simple_heuristic_evaluator(x, y, s, m, cs, prevState)
 
             score = score + s
 
+        if (testing):
+            print(score)
+
         return score
+
+    def simple_heuristic_evaluator(self, x, y, s, m, cs, prevState):
+        if (self.current_state[x][y] == 'X'):
+            if (prevState == 'X'):
+                m = m << 1
+            elif (prevState == 'O'):
+                s = s + (m >> cs) # a move which blocks the opposing color streak is a good move for us
+                m = 2
+                cs = 0
+
+            s = s + m
+            cs = cs + 1
+            prevState = self.current_state[x][y]
+        elif (self.current_state[x][y] == 'O'):
+            if (prevState == 'O'):
+                m = m << 1
+            elif (prevState == 'X'):
+                s = s - (m >> cs) # a move which blocks our color streak is a bad move for us (good move for opponent)
+                m = 2
+                cs = 0
+
+            s = s - m
+            cs = cs + 1
+            prevState = self.current_state[x][y]
+
+        return (s, m, cs, prevState)
+
 
     # Complex heuristic
     def complex_heuristic():
@@ -472,10 +474,6 @@ class GameBuilder:
         return (alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
 
 def main():
-    x = 2
-    print(x << 1)
-    x = x << 1
-    print(x << 1)
     game_config = "config.ini"    
     algorithm, px, py, g = GameBuilder.build_game(game_config)
     if (g != None):        
