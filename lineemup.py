@@ -282,16 +282,27 @@ class Game:
     # The idea is to check rows-columns only
     # If we have a 'streak' going (a row/column without an opposing piece)
     # the score will be exponentially increased
-    # Also, a move which blocks a streak is good
-    # The problem with this heuristic is that it doesn't take into account blocks, the winning length, the diagonals, and the board size
-    # However, it is very fast to calculate
+    # Also, a move which blocks the opponent streak is good for us
+    # Alternatively, a move which blocks our streak is a bad move for us
+    # The problem with this heuristic is that it doesn't take into account the blocks, the winning length, and the board size
+    # These issues will be resolved in the more complex heuristic
     def simple_heuristic(self, testing=False):
         if (testing == True):
-            self.current_state[0][0] = 'X'
-            self.current_state[1][0] = 'X'
+            #self.current_state[0][0] = 'X'
+            #self.current_state[1][0] = 'O'
+            #self.current_state[4][0] = 'X'
+            #self.current_state[3][1] = 'X'
+            #self.current_state[2][2] = 'X'
+            #self.current_state[4][0] = 'X'
+            #self.current_state[3][1] = 'X'
+            #self.current_state[2][2] = 'X'
+            #self.current_state[1][3] = 'X'
+            #self.current_state[3][3] = 'O'
+            #self.current_state[4][4] = 'O'
+            #self.current_state[1][0] = 'X'
             #self.current_state[0][3] = 'X'
-            self.current_state[0][1] = 'X'
-            self.current_state[2][0] = 'O'
+            #self.current_state[0][1] = 'X'
+            #self.current_state[2][0] = 'O'
             #self.current_state[3][0] = 'X'
             #self.current_state[4][0] = 'O'
             #self.current_state[2][0] = 'O'
@@ -303,10 +314,7 @@ class Game:
 
         # Rows
         for y in range(self.n):
-            s = 0
-            m = 2
-            cs = 0
-            prevState = "~"
+            s, m, cs, prevState = self.simple_heuristic_default_values()
 
             for x in range(self.n):
                 s, m, cs, prevState = self.simple_heuristic_evaluator(x, y, s, m, cs, prevState)
@@ -315,20 +323,36 @@ class Game:
 
         # Columns
         for x in range(self.n):
-            s = 0
-            m = 2
-            cs = 0
-            prevState = "~"
+            s, m, cs, prevState = self.simple_heuristic_default_values()
 
             for y in range(self.n):
                 s, m, cs, prevState = self.simple_heuristic_evaluator(x, y, s, m, cs, prevState)
 
             score = score + s
 
+        # Diagonal (left to right)
+        s, m, cs, prevState = self.simple_heuristic_default_values()
+        for x in range(self.n):
+            s, m, cs, prevState = self.simple_heuristic_evaluator(x, x, s, m, cs, prevState)
+            score = score + s
+
+        # Diagonal (right to left)
+        s, m, cs, prevState = self.simple_heuristic_default_values()
+        for x in range(self.n):
+            s, m, cs, prevState = self.simple_heuristic_evaluator(self.n - x - 1, x, s, m, cs, prevState)
+            score = score + s
+
         if (testing):
             print(score)
 
         return score
+
+    def simple_heuristic_default_values(self):
+        # [0] Current score for the current row/col/diagonal
+        # [1] Score multiplier
+        # [2] Consecuive streak
+        # [3] Previous state
+        return (0, 2, 0, "~")
 
     def simple_heuristic_evaluator(self, x, y, s, m, cs, prevState):
         if (self.current_state[x][y] == 'X'):
@@ -358,7 +382,24 @@ class Game:
 
 
     # Complex heuristic
-    def complex_heuristic():
+    def complex_heuristic(self, testing=False):
+        if (testing == True):
+            self.current_state[0][0] = 'X'
+            self.current_state[1][1] = 'X'
+            self.current_state[2][2] = 'X'
+            #self.current_state[3][3] = 'O'
+            #self.current_state[4][4] = 'O'
+            #self.current_state[1][0] = 'X'
+            #self.current_state[0][3] = 'X'
+            #self.current_state[0][1] = 'X'
+            #self.current_state[2][0] = 'O'
+            #self.current_state[3][0] = 'X'
+            #self.current_state[4][0] = 'O'
+            #self.current_state[2][0] = 'O'
+            #self.current_state[0][2] = 'O'
+            #self.current_state[0][3] = 'O'
+            self.draw_board()
+
         print("TODO")
 
     def play(self, algo=None, player_x=None, player_o=None):
