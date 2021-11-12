@@ -20,44 +20,57 @@ class Game:
         self.d1 = d1
         self.d2 = d2
         self.ai_timeout = ai_timeout
-        self.initialize_game()
         self.recommend = recommend
-        self.alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'][0:n]
+
+        self.initialize_game()
 
     def initialize_game(self):
-        self.current_state = np.full((self.n, self.n), '.')                      
-        for x in self.barray:           
+        self.current_state = np.full((self.n, self.n), '.')
+        for x in self.barray:
             self.current_state[x[0]][x[1]] = '~'
+
+        self.alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'][0:self.n]
 
         # Player X always plays first
         self.player_turn = 'X'
 
+        # Determine diagonal positions to check
+        self.diagonal_starting_positions = []
+        self.other_diagonal_starting_positions = []
+        for y in range(self.n - self.s + 1):
+            for x in range(self.n - self.s + 1):
+                self.diagonal_starting_positions.append([x, y])
+
+        for y in range(self.n - self.s + 1):
+            for x in range(self.n - 1, self.s - 2, -1):
+                self.other_diagonal_starting_positions.append([x, y])
+
+        # TODO Jared: Optimize the diagonal starting positions to remove overlap
+
     def draw_board(self):
         # Print column headers (from the alphabet)
+        # Build row separator
+        rowsep = '-----'
         print('\n    |  ', end='')
-        for x in range(0, self.n):
+        for x in range(self.n):
             print(self.alphabet[x] + "  |  ", end='')
-
-        # Add the row separator
-        # We will need this for every row, so store it in a variable
-        rowsep = '-'
-        for _ in range(0, self.n):
-            rowsep = rowsep + '-------'
+            rowsep = rowsep + '------'
 
         print('\n' + rowsep)
 
-        for y in range(0, self.n):
+        for y in range(self.n):
             # Print row headers (0-n)
             print(y, end='')
 
-            for x in range(0, self.n):
+            # Print the actual contents of the board
+            p = self.current_state[0][y].replace('.', ' ')
+            print(F'   |  {p}  | ', end=" ")
+
+            for x in range(1, self.n):
                 p = self.current_state[x][y].replace('.', ' ') # In code, we have a '.' representing a blank square, however, we can just show a blank square to the user
 
                 # Print the actual contents of the board
-                if (x == 0):
-                    print(F'   |  {p}  | ', end=" ")
-                else:
-                    print(F'{p}  | ', end=" ")
+                print(F'{p}  | ', end=" ")
 
             print('\n' + rowsep)
 
@@ -98,15 +111,17 @@ class Game:
                 elif ((di > -1 and dj > -1) and (self.current_state[dj][di] == self.current_state[j][i])):
                     l += 1
                 else:
-                    l = 0  
+                    l = 0
+
                 if (l == self.s):
-                    return self.current_state[dj][di]                              
+                    return self.current_state[dj][di]    
+
         # Horizontal win
         for i in range(0, self.n):
             l = 0
             di = -1
-            dj = -1            
-            for j in range(0, self.n):                                
+            dj = -1
+            for j in range(0, self.n):
                 if (l == 0 and (self.current_state[i][j] != '.' and self.current_state[i][j] != '~')):
                     di = i
                     dj = j
@@ -115,40 +130,64 @@ class Game:
                     l += 1
                 else:
                     l = 0
+
                 if (l == self.s):
-                    return self.current_state[di][dj]                   
-        # Main diagonal win
-        l = 0
-        di = -1
-        for i in range(0, self.n):                         
-            if (l == 0 and (self.current_state[i][i] != '.' and self.current_state[i][i] != '~')):
-                di = i
-                l += 1
-            elif (di > -1 and self.current_state[di][di] == self.current_state[i][i]):
-                l += 1
-            else:
-                l = 0    
-            if (l == self.s):
-                return self.current_state[di][di]               
-        # Second diagonal win
-        l = 0
-        di = -1        
-        for i in range(0, self.n):                      
-            if (l == 0 and (self.current_state[self.n-(i+1)][i] != '.' and self.current_state[self.n-(i+1)][i] != '~')):
-                di = i
-                l += 1
-            elif (di > -1 and self.current_state[self.n-(di+1)][di] == self.current_state[self.n-(i+1)][i]):
-                l += 1
-            else:
-                l = 0   
-            if (l == self.s):
-                return self.current_state[self.n-(di+1)][di]              
+                    return self.current_state[di][dj]
+
+        # Diagonal win (from left to right)
+        for d in range(len(self.diagonal_starting_positions)):
+            st_x = self.diagonal_starting_positions[d][0]
+            st_y = self.diagonal_starting_positions[d][1]
+            l = 0
+            di = -1
+            dj = -1
+            s = st_x + st_y
+            for _ in range(s, self.n):
+                if (l == 0 and (self.current_state[st_x][st_y] != '.' and self.current_state[st_x][st_y] != '~')):
+                    di = st_x
+                    dj = st_y
+                    l += 1
+                elif ((di > -1 and dj > -1) and (self.current_state[di][dj] == self.current_state[st_x][st_y])):
+                    l += 1
+                else:
+                    l = 0
+
+                st_x = st_x + 1
+                st_y = st_y + 1
+
+                if (l == self.s):
+                    return self.current_state[di][dj]
+
+        # Diagonal win (from right to left)
+        for d in range(len(self.other_diagonal_starting_positions)):
+            st_x = self.other_diagonal_starting_positions[d][0]
+            st_y = self.other_diagonal_starting_positions[d][1]
+            l = 0
+            di = -1
+            dj = -1
+            while (st_x > 0 and st_y < self.n):
+                if (l == 0 and (self.current_state[st_x][st_y] != '.' and self.current_state[st_x][st_y] != '~')):
+                    di = st_x
+                    dj = st_y
+                    l += 1
+                elif ((di > -1 and dj > -1) and (self.current_state[di][dj] == self.current_state[st_x][st_y])):
+                    l += 1
+                else:
+                    l = 0
+
+                st_x = st_x - 1
+                st_y = st_y + 1
+
+                if (l == self.s):
+                    return self.current_state[di][dj]
+
         # Is whole board full?
         for i in range(0, self.n):
             for j in range(0, self.n):
                 # There's an empty field, we continue the game
-                if (self.current_state[i][j] == '.'):                   
+                if (self.current_state[i][j] == '.'):
                     return None
+
         # It's a tie!
         return '.'
 
@@ -410,8 +449,11 @@ class Game:
         if player_o == None:
             player_o = self.HUMAN
 
+        player_x = self.HUMAN
+        player_o = self.HUMAN
+
         while True:
-            self.draw_board()           
+            self.draw_board()
             if self.check_end():
                 return
 
@@ -517,7 +559,7 @@ class GameBuilder:
 def main():
     game_config = "config.ini"    
     algorithm, px, py, g = GameBuilder.build_game(game_config)
-    if (g != None):        
+    if (g != None):
         g.play(algo=algorithm, player_x=px, player_o=py)
 
 if __name__ == "__main__":
