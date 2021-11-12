@@ -280,12 +280,8 @@ class Game:
         y = None
         result = self.is_end()
         elapsed_t = time.time() - start_time           
-        if depth == 0 or result == 'X' or elapsed_t >= self.ai_timeout:
-            return (-1, x, y)
-        elif depth == 0 or result == 'O' or elapsed_t >= self.ai_timeout:
-            return (1, x, y)
-        elif depth == 0 or result == '.' or elapsed_t >= self.ai_timeout:
-            return (0, x, y)
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
+            return (self.simple_heuristic(), x, y)        
         for i in range(0, self.n):
             for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
@@ -447,10 +443,7 @@ class Game:
         if player_x == None:
             player_x = self.HUMAN
         if player_o == None:
-            player_o = self.HUMAN
-
-        player_x = self.HUMAN
-        player_o = self.HUMAN
+            player_o = self.HUMAN       
 
         while True:
             self.draw_board()
@@ -539,19 +532,19 @@ class GameBuilder:
 
         # Number of blocks
         if (block_count < 0 or block_count > 2 * board_size):
-            print("ERROR: Invalid game configuration. Number of blocks placed must be between 0 and " + 2 * board_size + " inclusive")    
+            print(F"ERROR: Invalid game configuration. Number of blocks placed must be between 0 and {2 * board_size} inclusive")    
             return (None, None, None, None)
 
         # Validation for the blocks placed
         for x in range(len(block_array)):
             block_placed = block_array[x]
             if (block_placed[0] >= board_size or block_placed[1] >= board_size):
-                print("ERROR: Invalid game configuration. Block " + str(block_placed) + " not placed inside board")    
+                print(F"ERROR: Invalid game configuration. Block {block_placed} not placed inside board")    
                 return (None, None, None, None)
 
         # Winning line up size
         if (win_length < 3 or win_length > board_size):
-            print("ERROR: Invalid game configuration. Winning line up size must be between 3 and " + board_size + " inclusive")    
+            print(F"ERROR: Invalid game configuration. Winning line up size must be between 3 and {board_size} inclusive")    
             return (None, None, None, None)
 
         return (alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
