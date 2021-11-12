@@ -38,14 +38,20 @@ class Game:
         self.diagonal_starting_positions = []
         self.other_diagonal_starting_positions = []
         for y in range(self.n - self.s + 1):
-            for x in range(self.n - self.s + 1):
-                self.diagonal_starting_positions.append([x, y])
+            self.diagonal_starting_positions.append([y, 0])
+            if (y != 0):
+                self.diagonal_starting_positions.append([0, y])
 
-        for y in range(self.n - self.s + 1):
-            for x in range(self.n - 1, self.s - 2, -1):
-                self.other_diagonal_starting_positions.append([x, y])
+        x = 0
+        for y in range(self.n - 1, self.s - 2, -1):
+            self.other_diagonal_starting_positions.append([y, 0])
+            if (y != self.n - 1):
+                self.other_diagonal_starting_positions.append([self.n - 1, x])
+            x = x + 1
 
-        # TODO Jared: Optimize the diagonal starting positions to remove overlap
+        #self.rchecked = []
+        #self.cchecked = []
+        self.placesleft = (self.n * self.n) - self.b
 
     def draw_board(self):
         # Print column headers (from the alphabet)
@@ -97,13 +103,13 @@ class Game:
         else:
             return (ipx, py, True)
 
-    def is_end(self):
-        # Vertical win        
+    def is_end(self):        
+        # Vertical win
         for i in range(0, self.n):
             l = 0
             di = -1
             dj = -1            
-            for j in range(0, self.n):                                  
+            for j in range(0, self.n):                        
                 if (l == 0 and (self.current_state[j][i] != '.' and self.current_state[j][i] != '~')):
                     di = i
                     dj = j
@@ -182,11 +188,8 @@ class Game:
                     return self.current_state[di][dj]
 
         # Is whole board full?
-        for i in range(0, self.n):
-            for j in range(0, self.n):
-                # There's an empty field, we continue the game
-                if (self.current_state[i][j] == '.'):
-                    return None
+        if (self.placesleft > 0):
+            return None
 
         # It's a tie!
         return '.'
@@ -202,6 +205,7 @@ class Game:
                 print('The winner is O!')
             elif self.result == '.':
                 print("It's a tie!")
+
             self.initialize_game()
 
         return self.result
@@ -224,6 +228,7 @@ class Game:
             self.player_turn = 'O'
         elif self.player_turn == 'O':
             self.player_turn = 'X'
+
         return self.player_turn
 
     def minimax(self, depth, start_time, max=False):
@@ -239,16 +244,20 @@ class Game:
         x = None
         y = None
         result = self.is_end()
-        elapsed_t = time.time() - start_time       
+        elapsed_t = time.time() - start_time
+
         if depth == 0 or result == 'X' or elapsed_t >= self.ai_timeout:
             return (-1, x, y)
         elif depth == 0 or result == 'O' or elapsed_t >= self.ai_timeout:
             return (1, x, y)
         elif depth == 0 or result == '.' or elapsed_t >= self.ai_timeout:
             return (0, x, y)
+
         for i in range(0, self.n):
             for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
+                    self.placesleft = self.placesleft - 1
+                    
                     if max:
                         self.current_state[i][j] = 'O'
                         (v, _, _) = self.minimax(depth-1, start_time, max=False)
@@ -263,6 +272,8 @@ class Game:
                             value = v
                             x = i
                             y = j
+
+                    self.placesleft = self.placesleft + 1
                     self.current_state[i][j] = '.'
         return (value, x, y)
 
@@ -285,6 +296,8 @@ class Game:
         for i in range(0, self.n):
             for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
+                    self.placesleft = self.placesleft - 1
+
                     if max:
                         self.current_state[i][j] = 'O'
                         (v, _, _) = self.alphabeta(depth-1, start_time, alpha, beta, max=False)
@@ -299,7 +312,10 @@ class Game:
                             value = v
                             x = i
                             y = j
+
+                    self.placesleft = self.placesleft + 1
                     self.current_state[i][j] = '.'
+
                     if max:
                         if value >= beta:
                             return (value, x, y)
@@ -472,7 +488,6 @@ class Game:
                 print(F"Player {('X' if self.player_turn == 'X' else 'O')} has taken too long to make a move.")
                 print(F"The winner is {('O' if self.player_turn == 'X' else 'X')}!")
                 return
-                
 
             if (self.player_turn == 'X' and player_x == self.HUMAN) or (self.player_turn == 'O' and player_o == self.HUMAN):
                 if self.recommend:
@@ -485,6 +500,14 @@ class Game:
                 print(F'Player {self.player_turn} under AI control plays: {self.alphabet[x]} {y}')
 
             self.current_state[x][y] = self.player_turn
+            self.placesleft = self.placesleft - 1
+
+            #if (y not in self.rchecked):
+                #self.rchecked.append(y)
+
+            #if (x not in self.cchecked):
+                #self.cchecked.append(x)
+
             self.switch_player()
 
 class GameBuilder:
