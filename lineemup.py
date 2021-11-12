@@ -107,13 +107,17 @@ class Game:
             l = 0
             di = -1
             dj = -1            
-            for j in range(0, self.n):                        
+            for j in range(0, self.n):              
                 if (l == 0 and (self.current_state[j][i] != '.' and self.current_state[j][i] != '~')):
                     di = i
                     dj = j
                     l += 1
                 elif ((di > -1 and dj > -1) and (self.current_state[dj][di] == self.current_state[j][i])):
                     l += 1
+                elif (self.current_state[j][i] != '.' and self.current_state[j][i] != '~'):
+                    di = i
+                    dj = j
+                    l = 1
                 else:
                     l = 0
 
@@ -132,6 +136,10 @@ class Game:
                     l += 1
                 elif ((di > -1 and dj > -1) and (self.current_state[di][dj] == self.current_state[i][j])):
                     l += 1
+                elif (self.current_state[i][j] != '.' and self.current_state[i][j] != '~'):
+                    di = i
+                    dj = j
+                    l = 1
                 else:
                     l = 0
 
@@ -297,7 +305,7 @@ class Game:
         result = self.is_end()
         elapsed_t = time.time() - start_time           
         if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
-            return (self.complex_heuristic(), x, y)
+            return (self.simple_heuristic(), x, y)
         for i in range(0, self.n):
             for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
@@ -410,9 +418,9 @@ class Game:
         return 0
 
     def simple_heuristic_evaluator(self, x, y, s):
-        if (self.current_state[x][y] == 'X'):
+        if (self.current_state[x][y] == 'O'):
             s = s + 10
-        elif (self.current_state[x][y] == 'O'):
+        elif (self.current_state[x][y] == 'X'):
             s = s - 10
 
         return s
@@ -421,8 +429,7 @@ class Game:
     # The idea is to check all rows/columns/diagonals
     # If we have a 'streak' going (a row/column/diagonal without an opposing piece)
     # the score will be exponentially increased
-    # Also, a move which blocks the opponent streak is good for us
-    # Alternatively, a move which blocks our streak is a bad move for us
+    # If a move will be blocked by opponent piece, a wall, or a block, the streak is over and no score increase (TODO)
     def complex_heuristic(self, testing=False):
         if (testing == True):
             #self.current_state[0][0] = 'X'
