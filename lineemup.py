@@ -511,14 +511,11 @@ class Game:
             return (0, di, dj)
 
         my_piece = self.current_state[di][dj]
-        opponent_piece = ''
 
         if (my_piece == 'O'):
             e = 1
-            opponent_piece = 'X'
         elif (my_piece == 'X'):
             e = -1
-            opponent_piece = 'O'
 
         s = 2
         cs = 1
