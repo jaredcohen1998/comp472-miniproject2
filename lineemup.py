@@ -11,6 +11,8 @@ class Game:
     ALPHABETA = 1
     HUMAN = 2
     AI = 3
+    SIMPLE_EVAL = 4
+    COMPLEX_EVAL = 5
 
     def __init__(self, n, b, barray, s, d1, d2, ai_timeout, recommend=True):
         self.n = n
@@ -18,7 +20,7 @@ class Game:
         self.barray = barray
         self.s = s
         self.d1 = d1
-        self.d2 = d2
+        self.d2 = d2        
         self.ai_timeout = ai_timeout
         self.recommend = recommend
 
@@ -253,7 +255,7 @@ class Game:
 
         return self.player_turn
 
-    def minimax(self, depth, start_time, max=False):
+    def minimax(self, depth, start_time, eval, max=False):
         # Minimizing for 'X' and maximizing for 'O'
         # Possible values are:
         # -1 - win for 'X'
@@ -268,12 +270,11 @@ class Game:
         result = self.is_end()
         elapsed_t = time.time() - start_time
 
-        if depth == 0 or result == 'X' or elapsed_t >= self.ai_timeout:
-            return (-1, x, y)
-        elif depth == 0 or result == 'O' or elapsed_t >= self.ai_timeout:
-            return (1, x, y)
-        elif depth == 0 or result == '.' or elapsed_t >= self.ai_timeout:
-            return (0, x, y)
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
+            if eval == self.SIMPLE_EVAL:
+                return (self.simple_heuristic(), x, y)
+            elif eval == self.COMPLEX_EVAL:
+                return (self.complex_heuristic(), x, y)
 
         for i in range(0, self.n):
             for j in range(0, self.n):
@@ -282,14 +283,14 @@ class Game:
                     
                     if max:
                         self.current_state[i][j] = 'O'
-                        (v, _, _) = self.minimax(depth-1, start_time, max=False)
+                        (v, _, _) = self.minimax(depth-1, start_time, eval, max=False)
                         if v > value:
                             value = v
                             x = i
                             y = j
                     else:
                         self.current_state[i][j] = 'X'
-                        (v, _, _) = self.minimax(depth-1, start_time, max=True)
+                        (v, _, _) = self.minimax(depth-1, start_time, eval, max=True)
                         if v < value:
                             value = v
                             x = i
@@ -299,7 +300,7 @@ class Game:
                     self.current_state[i][j] = '.'
         return (value, x, y)
 
-    def alphabeta(self, depth, start_time, alpha=-np.inf, beta=np.inf, max=False):
+    def alphabeta(self, depth, start_time, eval, alpha=-np.inf, beta=np.inf, max=False):
         # Minimizing for 'X' and maximizing for 'O'
         # Possible values are:
         # -1 - win for 'X'
@@ -313,8 +314,12 @@ class Game:
         y = None
         result = self.is_end()
         elapsed_t = time.time() - start_time           
+        
         if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
-            return (self.complex_heuristic(), x, y)
+            if eval == self.SIMPLE_EVAL:
+                return (self.simple_heuristic(), x, y)
+            elif eval == self.COMPLEX_EVAL:
+                return (self.complex_heuristic(), x, y)
 
         for i in range(0, self.n):
             for j in range(0, self.n):
@@ -323,14 +328,14 @@ class Game:
 
                     if max:
                         self.current_state[i][j] = 'O'
-                        (v, _, _) = self.alphabeta(depth-1, start_time, alpha, beta, max=False)
+                        (v, _, _) = self.alphabeta(depth-1, start_time, eval, alpha, beta, max=False)
                         if v > value:
                             value = v
                             x = i
                             y = j
                     else:
                         self.current_state[i][j] = 'X'
-                        (v, _, _) = self.alphabeta(depth-1, start_time, alpha, beta, max=True)
+                        (v, _, _) = self.alphabeta(depth-1, start_time, eval, alpha, beta, max=True)
                         if v < value:
                             value = v
                             x = i
@@ -631,13 +636,17 @@ class Game:
         
         return (s, di, dj)
 
-    def play(self, algo=None, player_x=None, player_o=None):
+    def play(self, algo=None, player_x=None, player_o=None, px_eval=None, po_eval=None):
         if algo == None:
             algo = self.ALPHABETA
         if player_x == None:
             player_x = self.HUMAN
+        if px_eval == None:
+            px_eval = self.SIMPLE_EVAL
         if player_o == None:
             player_o = self.HUMAN
+        if po_eval == None:
+            po_eval == self.SIMPLE_EVAL
 
         while True:
             self.draw_board()
@@ -647,14 +656,14 @@ class Game:
             start = time.time()
             if algo == self.MINIMAX:
                 if self.player_turn == 'X':
-                    (_, x, y) = self.minimax(self.d1, start, max=False)
+                    (_, x, y) = self.minimax(self.d1, start, px_eval, max=False)
                 else:
-                    (_, x, y) = self.minimax(self.d2, start, max=True)
+                    (_, x, y) = self.minimax(self.d2, start, po_eval, max=True)
             elif algo == self.ALPHABETA:
                 if self.player_turn == 'X':
-                    (m, x, y) = self.alphabeta(self.d1, start, max=False)
+                    (m, x, y) = self.alphabeta(self.d1, start, px_eval, max=False)
                 else:
-                    (m, x, y) = self.alphabeta(self.d2, start, max=True)
+                    (m, x, y) = self.alphabeta(self.d2, start, po_eval, max=True)
 
             end = time.time()
 
@@ -709,6 +718,10 @@ class GameBuilder:
                         p1 = int(line.split('=')[1])
                     elif (line.split('=')[0] == "p2"):
                         p2 = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "p1Eval"):
+                        p1_eval = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "p2Eval"):
+                        p2_eval = int(line.split('=')[1])
                 
                 config.close()                   
         except Exception:
@@ -743,13 +756,13 @@ class GameBuilder:
             print(F"ERROR: Invalid game configuration. Winning line up size must be between 3 and {board_size} inclusive")    
             return (None, None, None, None)
 
-        return (alphabeta, p1, p2, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
+        return (alphabeta, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
 
 def main():
     game_config = "config.ini"    
-    algorithm, px, py, g = GameBuilder.build_game(game_config)
+    algorithm, px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
     if (g != None):
-        g.play(algo=algorithm, player_x=px, player_o=py)
+        g.play(algo=algorithm, player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
 
 if __name__ == "__main__":
     main()
