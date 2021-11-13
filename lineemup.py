@@ -441,8 +441,8 @@ class Game:
     def complex_heuristic_evaluator(self, x, y, t):
         di = x
         dj = y
-        e = 0
-        nws = 0
+        fnws = 0
+        bnws = 0
 
         # Determine movement vectors (dx, dy)
         if (t == "row"):
@@ -461,9 +461,10 @@ class Game:
         # Starting on an empty space can yield an advantage to either O or X. Determine who has the advantage by seeing what the next piece is
         while (((di > -1 and di < self.n) and dj < self.n) and (self.current_state[di][dj] == '.' or self.current_state[di][dj] == '~')):
             if (self.current_state[di][dj] == '.'):
-                nws = nws + 1
+                if (bnws < self.s):
+                    bnws = bnws + 1
             else:
-                nws = 0
+               bnws = 0
 
             di = di + dx
             dj = dj + dy
@@ -472,45 +473,62 @@ class Game:
         if ((di <= -1 or di >= self.n) or dj >= self.n):
             return (0, di, dj)
 
+        s = 0
+        cs = 0
+        e = 0
         my_piece = self.current_state[di][dj]
-
         if (my_piece == 'O'):
             e = 1
         elif (my_piece == 'X'):
             e = -1
 
-        s = 2
-        cs = 1
-        rcs = 1
-
-        di = di + dx
-        dj = dj + dy
         while ((di > -1 and di < self.n) and dj < self.n):
             if (self.current_state[di][dj] == my_piece):
+                if (bnws > 0 and (fnws + bnws + cs >= self.s)):
+                    bnws = bnws - 1
                 cs = cs + 1
-                rcs = rcs + 1
+                if (s == 0):
+                    s = 2
             elif (self.current_state[di][dj] == '.'):
-                nws = nws + 1
-                rcs = 0
+                fnws = fnws + 1
+                if (bnws > 0 and (fnws + bnws + cs >= self.s)):
+                    bnws = bnws - 1
             else:
                 cs = 0
-                rcs = 0
-                nws = 0
-                s = 0
+                # Psuedo win
+                if (fnws + bnws + cs >= self.s):
+                    n = self.s - (fnws + bnws)
+                    w = abs(n) ** 3
+                    s = s + w
+
+                    if (fnws + bnws == 0):
+                        s = s + 100000000000
+                    #elif (fnws + bnws == 1):
+                        #s = s + 10000
+                    #elif (fnws + bnws == 2):
+                        #s = s + 1000
+
+                    di = di - dx
+                    dj = dj - dy
+
                 break
+
+            # Psuedo win
+            if (fnws + bnws + cs >= self.s):
+                n = self.s - (fnws + bnws)
+                w = abs(n) ** 3
+                s = s + w
+
+                if (fnws + bnws == 0):
+                    s = s + 100000000000
+                    break
+                #elif (fnws + bnws == 1):
+                    #s = s + 10000
+                #elif (fnws + bnws == 2):
+                    #s = s + 1000
 
             di = di + dx
             dj = dj + dy
-
-            # Psuedo win
-            if (nws + cs >= self.s):
-                w = abs(self.s - nws)
-                s = s + (w ** 4)
-
-            # Real win
-            if (rcs >= self.s):
-                s = s ** 3
-                break
 
         if (e < 0 and s != 0):
             s = -s
@@ -528,6 +546,9 @@ class Game:
             player_o = self.HUMAN
         if po_eval == None:
             po_eval == self.SIMPLE_EVAL
+
+        #self.complex_heuristic()
+        #return
 
         while True:
             self.draw_board()
@@ -638,7 +659,7 @@ class GameBuilder:
             print(F"ERROR: Invalid game configuration. Winning line up size must be between 3 and {board_size} inclusive")    
             return (None, None, None, None, None, None)
 
-        return (alphabeta, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=False))
+        return (alphabeta, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
 
 def main():
     game_config = "config.ini"    
