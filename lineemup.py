@@ -20,7 +20,7 @@ class Game:
         self.barray = barray
         self.s = s
         self.d1 = d1
-        self.d2 = d2        
+        self.d2 = d2
         self.ai_timeout = ai_timeout
         self.recommend = recommend
 
@@ -51,7 +51,7 @@ class Game:
                 self.other_diagonal_starting_positions.append([self.n - 1, x])
             x = x + 1
 
-        #self.placesleft = (self.n * self.n) - self.b
+        self.maximumeval = 9999999999
 
     def draw_board(self):
         # Print column headers (from the alphabet)
@@ -103,7 +103,7 @@ class Game:
         else:
             return (ipx, py, True)
 
-    def is_end(self):           
+    def is_end(self):
         # Vertical win
         for i in range(0, self.n):
             l = 0
@@ -182,7 +182,7 @@ class Game:
             l = 0
             di = -1
             dj = -1
-            while (st_x > 0 and st_y < self.n):
+            while (st_x > -1 and st_y < self.n):
                 if (l == 0 and (self.current_state[st_x][st_y] != '.' and self.current_state[st_x][st_y] != '~')):
                     di = st_x
                     dj = st_y
@@ -201,12 +201,6 @@ class Game:
 
                 if (l == self.s):
                     return self.current_state[di][dj]
-
-        # Is whole board full?
-        '''
-        if (self.placesleft > 0):
-            return None
-        '''
 
         # Is whole board full?
         for i in range(0, self.n):
@@ -255,93 +249,89 @@ class Game:
 
         return self.player_turn
 
-    def minimax(self, depth, start_time, eval, max=False):
+    def minimax(self, depth, start_time, eval_method, max=False):
         # Minimizing for 'X' and maximizing for 'O'
         # Possible values are:
         # -1 - win for 'X'
         # 0  - a tie
         # 1  - loss for 'X'
-        # We're initially setting it to 2 or -2 as worse than the worst case:
+        # We're initially setting it to inf or -inf as worse than the worst case:
         value = np.inf
         if max:
             value = -np.inf
+
         x = None
         y = None
         result = self.is_end()
         elapsed_t = time.time() - start_time
 
         if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
-            if eval == self.SIMPLE_EVAL:
+            if eval_method == self.SIMPLE_EVAL:
                 return (self.simple_heuristic(), x, y)
-            elif eval == self.COMPLEX_EVAL:
+            elif eval_method == self.COMPLEX_EVAL:
                 return (self.complex_heuristic(), x, y)
 
         for i in range(0, self.n):
             for j in range(0, self.n):
-                if self.current_state[i][j] == '.':
-                    #self.placesleft = self.placesleft - 1
-                    
+                if self.current_state[i][j] == '.':                    
                     if max:
                         self.current_state[i][j] = 'O'
-                        (v, _, _) = self.minimax(depth-1, start_time, eval, max=False)
+                        (v, _, _) = self.minimax(depth-1, start_time, eval_method, max=False)
                         if v > value:
                             value = v
                             x = i
                             y = j
                     else:
                         self.current_state[i][j] = 'X'
-                        (v, _, _) = self.minimax(depth-1, start_time, eval, max=True)
+                        (v, _, _) = self.minimax(depth-1, start_time, eval_method, max=True)
                         if v < value:
                             value = v
                             x = i
                             y = j
 
-                    #self.placesleft = self.placesleft + 1
                     self.current_state[i][j] = '.'
         return (value, x, y)
 
-    def alphabeta(self, depth, start_time, eval, alpha=-np.inf, beta=np.inf, max=False):
+    def alphabeta(self, depth, start_time, eval_method, alpha=-np.inf, beta=np.inf, max=False):
         # Minimizing for 'X' and maximizing for 'O'
         # Possible values are:
         # -1 - win for 'X'
         # 0  - a tie
         # 1  - loss for 'X'
-        # We're initially setting it to 2 or -2 as worse than the worst case:
+        # We're initially setting it to inf or -inf as worse than the worst case:
         value = np.inf
         if max:
             value = -np.inf
+
         x = None
         y = None
         result = self.is_end()
-        elapsed_t = time.time() - start_time           
+        elapsed_t = time.time() - start_time
         
         if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
-            if eval == self.SIMPLE_EVAL:
+            if eval_method == self.SIMPLE_EVAL:
                 return (self.simple_heuristic(), x, y)
-            elif eval == self.COMPLEX_EVAL:
+            elif eval_method == self.COMPLEX_EVAL:
                 return (self.complex_heuristic(), x, y)
 
         for i in range(0, self.n):
             for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
-                    #self.placesleft = self.placesleft - 1
-
                     if max:
                         self.current_state[i][j] = 'O'
-                        (v, _, _) = self.alphabeta(depth-1, start_time, eval, alpha, beta, max=False)
+                        (v, _, _) = self.alphabeta(depth-1, start_time, eval_method, alpha, beta, max=False)
                         if v > value:
                             value = v
                             x = i
                             y = j
                     else:
                         self.current_state[i][j] = 'X'
-                        (v, _, _) = self.alphabeta(depth-1, start_time, eval, alpha, beta, max=True)
+                        (v, _, _) = self.alphabeta(depth-1, start_time, eval_method, alpha, beta, max=True)
                         if v < value:
                             value = v
                             x = i
                             y = j
 
-                    #self.placesleft = self.placesleft + 1
                     self.current_state[i][j] = '.'
 
                     if max:
@@ -358,45 +348,22 @@ class Game:
         return (value, x, y)
 
     # Simple heuristic
-    # The idea is to check rows-columns-diagonals
-    # This will add 1 to the score if we see our piece in a row/column/diagonal
-    # and subtract 1 to the score if we see an opponents piece
-    def simple_heuristic(self, testing=False):
-        if (testing == True):
-            #self.current_state[0][0] = 'X'
-            #self.current_state[1][0] = 'X'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[3][1] = 'X'
-            #self.current_state[2][2] = 'X'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[3][1] = 'X'
-            #self.current_state[2][2] = 'X'
-            #self.current_state[1][3] = 'X'
-            #self.current_state[3][3] = 'O'
-            #self.current_state[4][4] = 'O'
-            #self.current_state[1][0] = 'X'
-            #self.current_state[0][3] = 'X'
-            #self.current_state[0][1] = 'X'
-            #self.current_state[2][0] = 'O'
-            #self.current_state[3][0] = 'X'
-            #self.current_state[4][0] = 'O'
-            #self.current_state[2][0] = 'O'
-            #self.current_state[0][2] = 'O'
-            #self.current_state[0][3] = 'O'
-            self.draw_board()
-
+    # The idea is to check all rows/columns/diagonals
+    # It will add 2 to the score if we see our piece in a given position
+    # and subtract 2 to the score if we see an opponents piece
+    def simple_heuristic(self):
         score = 0
 
         # Rows
         for y in range(self.n):
-            s = self.simple_heuristic_default_values()
+            s = 0
             for x in range(self.n):
                 s = self.simple_heuristic_evaluator(x, y, s)
             score = score + s
 
         # Columns
         for x in range(self.n):
-            s = self.simple_heuristic_default_values()
+            s = 0
             for y in range(self.n):
                 s = self.simple_heuristic_evaluator(x, y, s)
             score = score + s
@@ -405,7 +372,7 @@ class Game:
         for d in range(len(self.diagonal_starting_positions)):
             st_x = self.diagonal_starting_positions[d][0]
             st_y = self.diagonal_starting_positions[d][1]
-            s = self.simple_heuristic_default_values()
+            s = 0
             while (st_x < self.n and st_y < self.n):
                 s = self.simple_heuristic_evaluator(st_x, st_y, s)
                 st_x = st_x + 1
@@ -416,78 +383,45 @@ class Game:
         for d in range(len(self.other_diagonal_starting_positions)):
             st_x = self.diagonal_starting_positions[d][0]
             st_y = self.diagonal_starting_positions[d][1]
-            s = self.simple_heuristic_default_values()
-            while (st_x > 0 and st_y < self.n):
+            s = 0
+            while (st_x > -1 and st_y < self.n):
                 s = self.simple_heuristic_evaluator(st_x, st_y, s)
                 st_x = st_x - 1
                 st_y = st_y + 1
             score = score + s
 
-        if (testing):
-            print(score)
-
         return score
-
-    def simple_heuristic_default_values(self):
-        # [0] Current score for the current row/col/diagonal
-        return 0
 
     def simple_heuristic_evaluator(self, x, y, s):
         if (self.current_state[x][y] == 'O'):
-            s = s + 1
+            s = s + 2
         elif (self.current_state[x][y] == 'X'):
-            s = s - 1
+            s = s - 2
 
         return s
 
     # Complex heuristic
     # The idea is to check all rows/columns/diagonals
-    # If we have a 'streak' going (a row/column/diagonal without an opposing piece)
-    # the score will be exponentially increased
-    # If a move will be blocked by opponent piece, a wall, or a block, the streak is over and no score increase (TODO)
+    # If we have a 'psuedo win', AKA a possible winning line of length s filled with empty tiles and at least one piece
+    # we add/substract to a total score. The score we add/subtract will depend on how many empty tiles are left
 
-    # O win = inf
-    # X win = -inf
-    # Favors O = positive value (higher value = favors O more than X)
-    # Favors X = negative value (lower value = favors X more than O)
+    # ['X', '.', '.' '.'], s=4, will produce small negative score
+    # ['X', 'X', '.' '.'], s=4, will produce larger negative score
+    # ['X', 'X', 'X' '.'], s=4, will produce vert large negative score
+
+    # O win = self.maximumeval
+    # X win = -self.maximumeval
+    # Favors O = positive value (higher value = favors O more)
+    # Favors X = negative value (lower value = favors X more)
     def complex_heuristic(self, testing=False):
-        if (testing == True):
-            #self.current_state[1][0] = 'X'
-            #self.current_state[2][1] = 'X'
-            #self.current_state[2][2] = 'O'
-            #self.current_state[6][0] = 'O'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[5][0] = 'X'
-            #self.current_state[2][0] = 'X'
-            #self.current_state[3][0] = 'X'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[3][1] = 'X'
-            #self.current_state[2][2] = 'X'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[3][1] = 'X'
-            #self.current_state[2][2] = 'X'
-            #self.current_state[1][3] = 'X'
-            #self.current_state[3][3] = 'O'
-            #self.current_state[4][4] = 'O'
-            #self.current_state[1][0] = 'X'
-            #self.current_state[0][3] = 'X'
-            #self.current_state[0][1] = 'X'
-            #self.current_state[2][0] = 'O'
-            #self.current_state[3][0] = 'X'
-            #self.current_state[4][0] = 'O'
-            #self.current_state[2][0] = 'O'
-            #self.current_state[0][2] = 'O'
-            #self.current_state[0][3] = 'O'
-            self.draw_board()
-
         score = 0
 
         # Rows
         for rows in range(self.n):
             dx = 0
             while (dx < self.n):
-                s, dx, _ = self.complex_heuristic_evaluator(dx, rows, "row")
-                if (s == np.inf or s == -np.inf):
+                s, dx, _, ended = self.complex_heuristic_evaluator(dx, rows, "row")
+                if (ended):
                     if (testing):
                         print(s)
                     return s
@@ -498,8 +432,8 @@ class Game:
         for columns in range(self.n):
             dy = 0
             while (dy < self.n):
-                s, _, dy = self.complex_heuristic_evaluator(columns, dy, "column")
-                if (s == np.inf or s == -np.inf):
+                s, _, dy, ended = self.complex_heuristic_evaluator(columns, dy, "column")
+                if (ended):
                     if (testing):
                         print(s)
                     return s
@@ -511,8 +445,8 @@ class Game:
             dx = self.diagonal_starting_positions[i][0]
             dy = self.diagonal_starting_positions[i][1]
             while (dx < self.n and dy < self.n):
-                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "column")
-                if (s == np.inf or s == -np.inf):
+                s, dx, dy, ended = self.complex_heuristic_evaluator(dx, dy, "diagonal-ltr")
+                if (ended):
                     if (testing):
                         print(s)
                     return s
@@ -523,9 +457,9 @@ class Game:
         for i in range(len(self.other_diagonal_starting_positions)):
             dx = self.other_diagonal_starting_positions[i][0]
             dy = self.other_diagonal_starting_positions[i][1]
-            while (dx < self.n and dy < self.n):
-                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "column")
-                if (s == np.inf or s == -np.inf):
+            while (dx > -1 and dy < self.n):
+                s, dx, dy, ended = self.complex_heuristic_evaluator(dx, dy, "diagonal-rtl")
+                if (ended):
                     if (testing):
                         print(s)
                     return s
@@ -534,15 +468,9 @@ class Game:
 
         if (testing):
             print(score)
-
         return score
 
-    def complex_heuristic_default_values(self):
-        # [0] Current score for the current row/col/diagonal
-        # [1] Previous state
-        return 0
-
-    # Evaluates a given row/col/diagonal
+    # Evaluates a given row/column/diagonal
     def complex_heuristic_evaluator(self, x, y, t):
         di = x
         dj = y
@@ -550,8 +478,6 @@ class Game:
         nws = 0
 
         # Determine movement vectors (dx, dy)
-        dx = 0
-        dy = 0
         if (t == "row"):
             dx = 1
             dy = 0
@@ -561,12 +487,12 @@ class Game:
         elif (t == "diagonal-ltr"):
             dx = 1
             dy = 1
-        elif (t == "diagonal-rtl"):
+        else: # diagonal-ltr
             dx = -1
             dy = 1
 
         # Starting on an empty space can yield an advantage to either O or X. Determine who has the advantage by seeing what the next piece is
-        while ((di < self.n and dj < self.n) and (self.current_state[di][dj] == '.' or self.current_state[di][dj] == '~')):
+        while (((di > -1 and di < self.n) and dj < self.n) and (self.current_state[di][dj] == '.' or self.current_state[di][dj] == '~')):
             if (self.current_state[di][dj] == '.'):
                 nws = nws + 1
             else:
@@ -575,66 +501,52 @@ class Game:
             di = di + dx
             dj = dj + dy
 
-        # The whole row/col/diagonal did not have an X or O piece
-        if (di >= self.n or dj >= self.n):
-            return (0, di, dj)
+        # The whole row/column/diagonal did not have an X or O piece
+        if ((di <= -1 or di >= self.n) or dj >= self.n):
+            return (0, di, dj, False)
 
         my_piece = self.current_state[di][dj]
-        opponent_piece = ''
 
         if (my_piece == 'O'):
             e = 1
-            opponent_piece = 'X'
         elif (my_piece == 'X'):
             e = -1
-            opponent_piece = 'O'
 
         s = 2
         cs = 1
+        rcs = 1
+
         di = di + dx
         dj = dj + dy
-        psuedowin = False
-
-        while (di < self.n and dj < self.n):
+        while ((di > -1 and di < self.n) and dj < self.n):
             if (self.current_state[di][dj] == my_piece):
                 cs = cs + 1
-                s = s << 1
+                rcs = rcs + 1
 
-                # Real win
-                if (cs >= self.s):
-                    if (my_piece == 'O'):
-                        return (np.inf, di, dj)
-                    elif (my_piece == 'X'):
-                        return (-np.inf, di, dj)
+                # Win
+                if (rcs >= self.s):
+                    s = self.maximumeval
+                    if (e < 0):
+                        s = -s
+                    return (s, di, dj, True)
             elif (self.current_state[di][dj] == '.'):
                 nws = nws + 1
+                rcs = 0
             else:
-                s = 0
                 break
 
             di = di + dx
             dj = dj + dy
 
-            # Psuedo win (meaning there exists a path for the current player to win)
+            # Psuedo win
             if (nws + cs >= self.s):
-                # We may have a better psuedo win
-                if (di < self.n and dj < self.n):
-                    if (my_piece == self.current_state[di][dj] and nws != 0):
-                        nws = nws - 1
-                        continue
-
-                w = self.s - nws
-                s = s + (w << 3)
-                psuedowin = True
-                break
-        
-        if (psuedowin == False):
-            s = 0
+                w = abs(self.s - nws)
+                s = s + (w ** 3)
 
         if (e < 0 and s != 0):
             s = -s
         
-        return (s, di, dj)
+        return (s, di, dj, False)
 
     def play(self, algo=None, player_x=None, player_o=None, px_eval=None, po_eval=None):
         if algo == None:
@@ -684,12 +596,9 @@ class Game:
                 (x, y) = self.input_move()
             if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
                 print(F'Evaluation time: {round(end - start, 7)}s')
-                print(F"{x} {y}")
                 print(F'Player {self.player_turn} under AI control plays: {self.alphabet[x]} {y}')
 
             self.current_state[x][y] = self.player_turn
-            #self.placesleft = self.placesleft - 1
-
             self.switch_player()
 
 class GameBuilder:
