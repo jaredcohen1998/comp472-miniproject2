@@ -5,6 +5,9 @@ import numpy as np
 import traceback
 import sys
 
+ComplexCounter = 0
+SimpleCounter = 0
+DepthList = [0]
 
 class Game:
     MINIMAX = 0
@@ -92,7 +95,7 @@ class Game:
 
         if (not py.isdigit()):
             return (0, 0, False)
-        
+
         py = int(py)
         if ipx < 0 or ipx > self.n-1 or py < 0 or py > self.n-1:
             return (0, 0, False)
@@ -106,8 +109,8 @@ class Game:
         for i in range(0, self.n):
             l = 0
             di = -1
-            dj = -1            
-            for j in range(0, self.n):              
+            dj = -1
+            for j in range(0, self.n):
                 if (l == 0 and (self.current_state[j][i] != '.' and self.current_state[j][i] != '~')):
                     di = i
                     dj = j
@@ -262,16 +265,22 @@ class Game:
         y = None
         result = self.is_end()
         elapsed_t = time.time() - start_time
-
-        if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
+        global DepthList
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.1:
             if eval_method == self.SIMPLE_EVAL:
+                global SimpleCounter
+                SimpleCounter += 1
+                DepthList[depth] = DepthList[depth]+1
                 return (self.simple_heuristic(), x, y)
             elif eval_method == self.COMPLEX_EVAL:
+                global ComplexCounter
+                ComplexCounter += 1
+                DepthList[depth] = DepthList[depth]+1
                 return (self.complex_heuristic(), x, y)
 
         for i in range(0, self.n):
             for j in range(0, self.n):
-                if self.current_state[i][j] == '.':                    
+                if self.current_state[i][j] == '.':
                     if max:
                         self.current_state[i][j] = 'O'
                         (v, _, _) = self.minimax(depth-1, start_time, eval_method, max=False)
@@ -305,11 +314,17 @@ class Game:
         y = None
         result = self.is_end()
         elapsed_t = time.time() - start_time
-        
-        if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
+        global DepthList
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.1:
             if eval_method == self.SIMPLE_EVAL:
+                global SimpleCounter
+                SimpleCounter += 1
+                DepthList[depth] = DepthList[depth]+1
                 return (self.simple_heuristic(), x, y)
             elif eval_method == self.COMPLEX_EVAL:
+                global ComplexCounter
+                ComplexCounter +=1
+                DepthList[depth] = DepthList[depth]+1
                 return (self.complex_heuristic(), x, y)
 
         for i in range(0, self.n):
@@ -464,7 +479,7 @@ class Game:
                 if (bnws < self.s):
                     bnws = bnws + 1
             else:
-               bnws = 0
+                bnws = 0
 
             di = di + dx
             dj = dj + dy
@@ -504,9 +519,9 @@ class Game:
                     if (fnws + bnws == 0):
                         s = s + 100000000000
                     #elif (fnws + bnws == 1):
-                        #s = s + 10000
+                    #s = s + 10000
                     #elif (fnws + bnws == 2):
-                        #s = s + 1000
+                    #s = s + 1000
 
                     di = di - dx
                     dj = dj - dy
@@ -523,16 +538,16 @@ class Game:
                     s = s + 100000000000
                     break
                 #elif (fnws + bnws == 1):
-                    #s = s + 10000
+                #s = s + 10000
                 #elif (fnws + bnws == 2):
-                    #s = s + 1000
+                #s = s + 1000
 
             di = di + dx
             dj = dj + dy
 
         if (e < 0 and s != 0):
             s = -s
-        
+
         return (s, di, dj)
 
     def play(self, algo=None, player_x=None, player_o=None, px_eval=None, po_eval=None):
@@ -549,26 +564,35 @@ class Game:
 
         #self.complex_heuristic()
         #return
-
+        global ComplexCounter
+        global SimpleCounter
+        global DepthList
         while True:
             self.draw_board()
             if self.check_end():
                 return
 
+            ComplexCounter = 0
+            SimpleCounter = 0
+            averageDepth = 0
             start = time.time()
             if algo == self.MINIMAX:
                 if self.player_turn == 'X':
                     if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
+                        DepthList = [0] * self.d1
                         (_, x, y) = self.minimax(self.d1, start, px_eval, max=False)
                 else:
                     if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
+                        DepthList = [0] * self.d2
                         (_, x, y) = self.minimax(self.d2, start, po_eval, max=True)
             elif algo == self.ALPHABETA:
                 if self.player_turn == 'X':
                     if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
+                        DepthList = [0] * self.d1
                         (m, x, y) = self.alphabeta(self.d1, start, px_eval, max=False)
                 else:
                     if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
+                        DepthList = [0] * self.d2
                         (m, x, y) = self.alphabeta(self.d2, start, po_eval, max=True)
 
             end = time.time()
@@ -592,14 +616,26 @@ class Game:
                 print(F'Evaluation time: {round(end - start, 7)}s')
                 print(F'Player {self.player_turn} under AI control plays: {self.alphabet[x]} {y}')
 
+            if self.player_turn == 'X':
+                for z in range (0, self.d1):
+                    averageDepth += DepthList[z]*(self.d1-z)
+                averageDepth = averageDepth/sum(DepthList)
+            if self.player_turn == 'O':
+                for z in range (0, self.d2):
+                    averageDepth += DepthList[z]*(self.d2-z)
+                averageDepth = averageDepth/sum(DepthList)
+
+            print(ComplexCounter)
+            print(DepthList)
+            print(averageDepth)
             self.current_state[x][y] = self.player_turn
             self.switch_player()
 
 class GameBuilder:
-    def build_game(config_path):        
+    def build_game(config_path):
         try:
             with open(config_path, "r") as config:
-                for line in config:                    
+                for line in config:
                     if (line.split('=')[0] == "boardSize"):
                         board_size = int(line.split('=')[1])
                     elif (line.split('=')[0] == "blockCount"):
@@ -625,44 +661,44 @@ class GameBuilder:
                         p1_eval = int(line.split('=')[1])
                     elif (line.split('=')[0] == "p2Eval"):
                         p2_eval = int(line.split('=')[1])
-                
-                config.close()                   
+
+                config.close()
         except Exception:
-            print("ERROR: Could not open file", config_path) 
+            print("ERROR: Could not open file", config_path)
             print(traceback.format_exc())
             return (None, None, None, None, None, None)
 
         # Size of board
         if (board_size < 3 or board_size > 10):
-            print("ERROR: Invalid game configuration. Board size must be between 3 and 10 inclusive")    
+            print("ERROR: Invalid game configuration. Board size must be between 3 and 10 inclusive")
             return (None, None, None, None, None, None)
 
         # Number of blocks
         if (len(block_array) != block_count):
-            print("ERROR: Invalid game configuration. Number of blocks does not match size of block array in config file")    
+            print("ERROR: Invalid game configuration. Number of blocks does not match size of block array in config file")
             return (None, None, None, None, None, None)
 
         # Number of blocks
         if (block_count < 0 or block_count > 2 * board_size):
-            print(F"ERROR: Invalid game configuration. Number of blocks placed must be between 0 and {2 * board_size} inclusive")    
+            print(F"ERROR: Invalid game configuration. Number of blocks placed must be between 0 and {2 * board_size} inclusive")
             return (None, None, None, None, None, None)
 
         # Validation for the blocks placed
         for x in range(len(block_array)):
             block_placed = block_array[x]
             if (block_placed[0] >= board_size or block_placed[1] >= board_size):
-                print(F"ERROR: Invalid game configuration. Block {block_placed} not placed inside board")    
+                print(F"ERROR: Invalid game configuration. Block {block_placed} not placed inside board")
                 return (None, None, None, None, None, None)
 
         # Winning line up size
         if (win_length < 3 or win_length > board_size):
-            print(F"ERROR: Invalid game configuration. Winning line up size must be between 3 and {board_size} inclusive")    
+            print(F"ERROR: Invalid game configuration. Winning line up size must be between 3 and {board_size} inclusive")
             return (None, None, None, None, None, None)
 
         return (alphabeta, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
 
 def main():
-    game_config = "config.ini"    
+    game_config = "config.ini"
     algorithm, px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
     if (g != None):
         g.play(algo=algorithm, player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
