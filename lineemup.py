@@ -51,8 +51,6 @@ class Game:
                 self.other_diagonal_starting_positions.append([self.n - 1, x])
             x = x + 1
 
-        self.maximumeval = 9999999999
-
     def draw_board(self):
         # Print column headers (from the alphabet)
         # Build row separator
@@ -402,42 +400,23 @@ class Game:
 
     # Complex heuristic
     # The idea is to check all rows/columns/diagonals
-    # If we have a 'psuedo win', AKA a possible winning line of length s filled with empty tiles and at least one piece
+    # If we have a possible winning line of length s filled with empty tiles and at least one of our piece (I call this a psuedo win)
     # we add/substract to a total score. The score we add/subtract will depend on how many empty tiles are left
-
-    # ['X', '.', '.' '.'], s=4, will produce small negative score
-    # ['X', 'X', '.' '.'], s=4, will produce larger negative score
-    # ['X', 'X', 'X' '.'], s=4, will produce vert large negative score
-
-    # O win = self.maximumeval
-    # X win = -self.maximumeval
-    # Favors O = positive value (higher value = favors O more)
-    # Favors X = negative value (lower value = favors X more)
-    def complex_heuristic(self, testing=False):
+    def complex_heuristic(self):
         score = 0
 
         # Rows
         for rows in range(self.n):
             dx = 0
             while (dx < self.n):
-                s, dx, _, ended = self.complex_heuristic_evaluator(dx, rows, "row")
-                if (ended):
-                    if (testing):
-                        print(s)
-                    return s
-
+                s, dx, _ = self.complex_heuristic_evaluator(dx, rows, "row")
                 score = score + s
 
         # Columns
         for columns in range(self.n):
             dy = 0
             while (dy < self.n):
-                s, _, dy, ended = self.complex_heuristic_evaluator(columns, dy, "column")
-                if (ended):
-                    if (testing):
-                        print(s)
-                    return s
-
+                s, _, dy = self.complex_heuristic_evaluator(columns, dy, "column")
                 score = score + s
 
         # Diagonal (left to right)
@@ -445,12 +424,7 @@ class Game:
             dx = self.diagonal_starting_positions[i][0]
             dy = self.diagonal_starting_positions[i][1]
             while (dx < self.n and dy < self.n):
-                s, dx, dy, ended = self.complex_heuristic_evaluator(dx, dy, "diagonal-ltr")
-                if (ended):
-                    if (testing):
-                        print(s)
-                    return s
-
+                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "diagonal-ltr")
                 score = score + s
 
         # Diagonal (right to left)
@@ -458,16 +432,9 @@ class Game:
             dx = self.other_diagonal_starting_positions[i][0]
             dy = self.other_diagonal_starting_positions[i][1]
             while (dx > -1 and dy < self.n):
-                s, dx, dy, ended = self.complex_heuristic_evaluator(dx, dy, "diagonal-rtl")
-                if (ended):
-                    if (testing):
-                        print(s)
-                    return s
-
+                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "diagonal-rtl")
                 score = score + s
 
-        if (testing):
-            print(score)
         return score
 
     # Evaluates a given row/column/diagonal
@@ -487,7 +454,7 @@ class Game:
         elif (t == "diagonal-ltr"):
             dx = 1
             dy = 1
-        else: # diagonal-ltr
+        else: # diagonal-rtl
             dx = -1
             dy = 1
 
@@ -503,7 +470,7 @@ class Game:
 
         # The whole row/column/diagonal did not have an X or O piece
         if ((di <= -1 or di >= self.n) or dj >= self.n):
-            return (0, di, dj, False)
+            return (0, di, dj)
 
         my_piece = self.current_state[di][dj]
 
@@ -522,17 +489,14 @@ class Game:
             if (self.current_state[di][dj] == my_piece):
                 cs = cs + 1
                 rcs = rcs + 1
-
-                # Win
-                if (rcs >= self.s):
-                    s = self.maximumeval
-                    if (e < 0):
-                        s = -s
-                    return (s, di, dj, True)
             elif (self.current_state[di][dj] == '.'):
                 nws = nws + 1
                 rcs = 0
             else:
+                cs = 0
+                rcs = 0
+                nws = 0
+                s = 0
                 break
 
             di = di + dx
@@ -541,12 +505,17 @@ class Game:
             # Psuedo win
             if (nws + cs >= self.s):
                 w = abs(self.s - nws)
-                s = s + (w ** 3)
+                s = s + (w ** 4)
+
+            # Real win
+            if (rcs >= self.s):
+                s = s ** 3
+                break
 
         if (e < 0 and s != 0):
             s = -s
         
-        return (s, di, dj, False)
+        return (s, di, dj)
 
     def play(self, algo=None, player_x=None, player_o=None, px_eval=None, po_eval=None):
         if algo == None:
@@ -568,14 +537,18 @@ class Game:
             start = time.time()
             if algo == self.MINIMAX:
                 if self.player_turn == 'X':
-                    (_, x, y) = self.minimax(self.d1, start, px_eval, max=False)
+                    if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
+                        (_, x, y) = self.minimax(self.d1, start, px_eval, max=False)
                 else:
-                    (_, x, y) = self.minimax(self.d2, start, po_eval, max=True)
+                    if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
+                        (_, x, y) = self.minimax(self.d2, start, po_eval, max=True)
             elif algo == self.ALPHABETA:
                 if self.player_turn == 'X':
-                    (m, x, y) = self.alphabeta(self.d1, start, px_eval, max=False)
+                    if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
+                        (m, x, y) = self.alphabeta(self.d1, start, px_eval, max=False)
                 else:
-                    (m, x, y) = self.alphabeta(self.d2, start, po_eval, max=True)
+                    if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
+                        (m, x, y) = self.alphabeta(self.d2, start, po_eval, max=True)
 
             end = time.time()
 
@@ -636,36 +609,36 @@ class GameBuilder:
         except Exception:
             print("ERROR: Could not open file", config_path) 
             print(traceback.format_exc())
-            return (None, None, None, None)
+            return (None, None, None, None, None, None)
 
         # Size of board
         if (board_size < 3 or board_size > 10):
             print("ERROR: Invalid game configuration. Board size must be between 3 and 10 inclusive")    
-            return (None, None, None, None)
+            return (None, None, None, None, None, None)
 
         # Number of blocks
         if (len(block_array) != block_count):
             print("ERROR: Invalid game configuration. Number of blocks does not match size of block array in config file")    
-            return (None, None, None, None)
+            return (None, None, None, None, None, None)
 
         # Number of blocks
         if (block_count < 0 or block_count > 2 * board_size):
             print(F"ERROR: Invalid game configuration. Number of blocks placed must be between 0 and {2 * board_size} inclusive")    
-            return (None, None, None, None)
+            return (None, None, None, None, None, None)
 
         # Validation for the blocks placed
         for x in range(len(block_array)):
             block_placed = block_array[x]
             if (block_placed[0] >= board_size or block_placed[1] >= board_size):
                 print(F"ERROR: Invalid game configuration. Block {block_placed} not placed inside board")    
-                return (None, None, None, None)
+                return (None, None, None, None, None, None)
 
         # Winning line up size
         if (win_length < 3 or win_length > board_size):
             print(F"ERROR: Invalid game configuration. Winning line up size must be between 3 and {board_size} inclusive")    
-            return (None, None, None, None)
+            return (None, None, None, None, None, None)
 
-        return (alphabeta, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
+        return (alphabeta, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=False))
 
 def main():
     game_config = "config.ini"    
