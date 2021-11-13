@@ -531,9 +531,9 @@ class Game:
                 # Real win
                 if (cs >= self.s):
                     if (my_piece == 'O'):
-                        return (np.inf, di, dj)
+                        return (1000000, di, dj)
                     elif (my_piece == 'X'):
-                        return (-np.inf, di, dj)
+                        return (-1000000, di, dj)
             elif (self.current_state[di][dj] == '.'):
                 nws = nws + 1
             else:
