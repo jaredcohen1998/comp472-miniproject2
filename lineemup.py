@@ -49,7 +49,7 @@ class Game:
                 self.other_diagonal_starting_positions.append([self.n - 1, x])
             x = x + 1
 
-        self.placesleft = (self.n * self.n) - self.b
+        #self.placesleft = (self.n * self.n) - self.b
 
     def draw_board(self):
         # Print column headers (from the alphabet)
@@ -201,8 +201,17 @@ class Game:
                     return self.current_state[di][dj]
 
         # Is whole board full?
+        '''
         if (self.placesleft > 0):
             return None
+        '''
+
+        # Is whole board full?
+        for i in range(0, self.n):
+            for j in range(0, self.n):
+                # There's an empty field, we continue the game
+                if (self.current_state[i][j] == '.'):
+                    return None
 
         # It's a tie!
         return '.'
@@ -269,7 +278,7 @@ class Game:
         for i in range(0, self.n):
             for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
-                    self.placesleft = self.placesleft - 1
+                    #self.placesleft = self.placesleft - 1
                     
                     if max:
                         self.current_state[i][j] = 'O'
@@ -286,7 +295,7 @@ class Game:
                             x = i
                             y = j
 
-                    self.placesleft = self.placesleft + 1
+                    #self.placesleft = self.placesleft + 1
                     self.current_state[i][j] = '.'
         return (value, x, y)
 
@@ -305,11 +314,12 @@ class Game:
         result = self.is_end()
         elapsed_t = time.time() - start_time           
         if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
-            return (self.simple_heuristic(), x, y)
+            return (self.complex_heuristic(), x, y)
+
         for i in range(0, self.n):
             for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
-                    self.placesleft = self.placesleft - 1
+                    #self.placesleft = self.placesleft - 1
 
                     if max:
                         self.current_state[i][j] = 'O'
@@ -326,7 +336,7 @@ class Game:
                             x = i
                             y = j
 
-                    self.placesleft = self.placesleft + 1
+                    #self.placesleft = self.placesleft + 1
                     self.current_state[i][j] = '.'
 
                     if max:
@@ -344,8 +354,8 @@ class Game:
 
     # Simple heuristic
     # The idea is to check rows-columns-diagonals
-    # This will add 10 to the score if we see our piece in a row/column/diagonal
-    # and subtract 10 to the score if we see an opponents piece
+    # This will add 1 to the score if we see our piece in a row/column/diagonal
+    # and subtract 1 to the score if we see an opponents piece
     def simple_heuristic(self, testing=False):
         if (testing == True):
             #self.current_state[0][0] = 'X'
@@ -419,9 +429,9 @@ class Game:
 
     def simple_heuristic_evaluator(self, x, y, s):
         if (self.current_state[x][y] == 'O'):
-            s = s + 10
+            s = s + 1
         elif (self.current_state[x][y] == 'X'):
-            s = s - 10
+            s = s - 1
 
         return s
 
@@ -430,10 +440,21 @@ class Game:
     # If we have a 'streak' going (a row/column/diagonal without an opposing piece)
     # the score will be exponentially increased
     # If a move will be blocked by opponent piece, a wall, or a block, the streak is over and no score increase (TODO)
+
+    # O win = inf
+    # X win = -inf
+    # Favors O = positive value (higher value = favors O more than X)
+    # Favors X = negative value (lower value = favors X more than O)
     def complex_heuristic(self, testing=False):
         if (testing == True):
-            #self.current_state[0][0] = 'X'
-            #self.current_state[1][0] = 'O'
+            #self.current_state[1][0] = 'X'
+            #self.current_state[2][1] = 'X'
+            #self.current_state[2][2] = 'O'
+            #self.current_state[6][0] = 'O'
+            #self.current_state[4][0] = 'X'
+            #self.current_state[5][0] = 'X'
+            #self.current_state[2][0] = 'X'
+            #self.current_state[3][0] = 'X'
             #self.current_state[4][0] = 'X'
             #self.current_state[3][1] = 'X'
             #self.current_state[2][2] = 'X'
@@ -457,30 +478,54 @@ class Game:
         score = 0
 
         # Rows
-        for y in range(self.n):
-            s, m, cs, prevState = self.complex_heuristic_default_values()
-            for x in range(self.n):
-                s, m, cs, prevState = self.complex_heuristic_evaluator(x, y, s, m, cs, prevState)
-            score = score + s
+        for rows in range(self.n):
+            dx = 0
+            while (dx < self.n):
+                s, dx, _ = self.complex_heuristic_evaluator(dx, rows, "row")
+                if (s == np.inf or s == -np.inf):
+                    if (testing):
+                        print(s)
+                    return s
+
+                score = score + s
 
         # Columns
-        for x in range(self.n):
-            s, m, cs, prevState = self.complex_heuristic_default_values()
-            for y in range(self.n):
-                s, m, cs, prevState = self.complex_heuristic_evaluator(x, y, s, m, cs, prevState)
-            score = score + s
+        for columns in range(self.n):
+            dy = 0
+            while (dy < self.n):
+                s, _, dy = self.complex_heuristic_evaluator(columns, dy, "column")
+                if (s == np.inf or s == -np.inf):
+                    if (testing):
+                        print(s)
+                    return s
+
+                score = score + s
 
         # Diagonal (left to right)
-        s, m, cs, prevState = self.complex_heuristic_default_values()
-        for x in range(self.n):
-            s, m, cs, prevState = self.complex_heuristic_evaluator(x, x, s, m, cs, prevState)
-            score = score + s
+        for i in range(len(self.diagonal_starting_positions)):
+            dx = self.diagonal_starting_positions[i][0]
+            dy = self.diagonal_starting_positions[i][1]
+            while (dx < self.n and dy < self.n):
+                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "column")
+                if (s == np.inf or s == -np.inf):
+                    if (testing):
+                        print(s)
+                    return s
+
+                score = score + s
 
         # Diagonal (right to left)
-        s, m, cs, prevState = self.complex_heuristic_default_values()
-        for x in range(self.n):
-            s, m, cs, prevState = self.complex_heuristic_evaluator(self.n - x - 1, x, s, m, cs, prevState)
-            score = score + s
+        for i in range(len(self.other_diagonal_starting_positions)):
+            dx = self.other_diagonal_starting_positions[i][0]
+            dy = self.other_diagonal_starting_positions[i][1]
+            while (dx < self.n and dy < self.n):
+                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "column")
+                if (s == np.inf or s == -np.inf):
+                    if (testing):
+                        print(s)
+                    return s
+
+                score = score + s
 
         if (testing):
             print(score)
@@ -489,36 +534,102 @@ class Game:
 
     def complex_heuristic_default_values(self):
         # [0] Current score for the current row/col/diagonal
-        # [1] Score multiplier
-        # [2] Consecuive streak
-        # [3] Previous state
-        return (0, 2, 0, "~")
+        # [1] Previous state
+        return 0
 
-    def complex_heuristic_evaluator(self, x, y, s, m, cs, prevState):
-        if (self.current_state[x][y] == 'O'):
-            if (prevState == 'O'):
-                m = m << 1
-            elif (prevState == 'X'):
-                s = s + (m >> cs) # a move which blocks the opposing color streak is a good move for us
-                m = 2
-                cs = 0
+    # Evaluates a given row/col/diagonal
+    def complex_heuristic_evaluator(self, x, y, t):
+        di = x
+        dj = y
+        e = 0
+        nws = 0
 
-            s = s + m
-            cs = cs + 1
-            prevState = self.current_state[x][y]
-        elif (self.current_state[x][y] == 'X'):
-            if (prevState == 'X'):
-                m = m << 1
-            elif (prevState == 'O'):
-                s = s - (m >> cs) # a move which blocks our color streak is a bad move for us (good move for opponent)
-                m = 2
-                cs = 0
+        # Determine movement vectors (dx, dy)
+        dx = 0
+        dy = 0
+        if (t == "row"):
+            dx = 1
+            dy = 0
+        elif (t == "column"):
+            dx = 0
+            dy = 1
+        elif (t == "diagonal-ltr"):
+            dx = 1
+            dy = 1
+        elif (t == "diagonal-rtl"):
+            dx = -1
+            dy = 1
 
-            s = s - m
-            cs = cs + 1
-            prevState = self.current_state[x][y]
+        # Starting on an empty space can yield an advantage to either O or X. Determine who has the advantage by seeing what the next piece is
+        while ((di < self.n and dj < self.n) and (self.current_state[di][dj] == '.' or self.current_state[di][dj] == '~')):
+            if (self.current_state[di][dj] == '.'):
+                nws = nws + 1
+            else:
+                nws = 0
 
-        return (s, m, cs, prevState)
+            di = di + dx
+            dj = dj + dy
+
+        # The whole row/col/diagonal did not have an X or O piece
+        if (di >= self.n or dj >= self.n):
+            return (0, di, dj)
+
+        my_piece = self.current_state[di][dj]
+        opponent_piece = ''
+
+        if (my_piece == 'O'):
+            e = 1
+            opponent_piece = 'X'
+        elif (my_piece == 'X'):
+            e = -1
+            opponent_piece = 'O'
+
+        s = 2
+        cs = 1
+        di = di + dx
+        dj = dj + dy
+        psuedowin = False
+
+        while (di < self.n and dj < self.n):
+            if (self.current_state[di][dj] == my_piece):
+                cs = cs + 1
+                s = s << 1
+
+                # Real win
+                if (cs >= self.s):
+                    if (my_piece == 'O'):
+                        return (np.inf, di, dj)
+                    elif (my_piece == 'X'):
+                        return (-np.inf, di, dj)
+            elif (self.current_state[di][dj] == '.'):
+                nws = nws + 1
+            else:
+                s = 0
+                break
+
+            di = di + dx
+            dj = dj + dy
+
+            # Psuedo win (meaning there exists a path for the current player to win)
+            if (nws + cs >= self.s):
+                # We may have a better psuedo win
+                if (di < self.n and dj < self.n):
+                    if (my_piece == self.current_state[di][dj] and nws != 0):
+                        nws = nws - 1
+                        continue
+
+                w = self.s - nws
+                s = s + (w << 3)
+                psuedowin = True
+                break
+        
+        if (psuedowin == False):
+            s = 0
+
+        if (e < 0 and s != 0):
+            s = -s
+        
+        return (s, di, dj)
 
     def play(self, algo=None, player_x=None, player_o=None):
         if algo == None:
@@ -564,10 +675,11 @@ class Game:
                 (x, y) = self.input_move()
             if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
                 print(F'Evaluation time: {round(end - start, 7)}s')
+                print(F"{x} {y}")
                 print(F'Player {self.player_turn} under AI control plays: {self.alphabet[x]} {y}')
 
             self.current_state[x][y] = self.player_turn
-            self.placesleft = self.placesleft - 1
+            #self.placesleft = self.placesleft - 1
 
             self.switch_player()
 
