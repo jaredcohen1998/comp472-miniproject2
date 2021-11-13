@@ -358,45 +358,22 @@ class Game:
         return (value, x, y)
 
     # Simple heuristic
-    # The idea is to check rows-columns-diagonals
-    # This will add 1 to the score if we see our piece in a row/column/diagonal
-    # and subtract 1 to the score if we see an opponents piece
+    # The idea is to check all rows/columns/diagonals
+    # It will add 2 to the score if we see our piece in a given position
+    # and subtract 2 to the score if we see an opponents piece
     def simple_heuristic(self, testing=False):
-        if (testing == True):
-            #self.current_state[0][0] = 'X'
-            #self.current_state[1][0] = 'X'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[3][1] = 'X'
-            #self.current_state[2][2] = 'X'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[3][1] = 'X'
-            #self.current_state[2][2] = 'X'
-            #self.current_state[1][3] = 'X'
-            #self.current_state[3][3] = 'O'
-            #self.current_state[4][4] = 'O'
-            #self.current_state[1][0] = 'X'
-            #self.current_state[0][3] = 'X'
-            #self.current_state[0][1] = 'X'
-            #self.current_state[2][0] = 'O'
-            #self.current_state[3][0] = 'X'
-            #self.current_state[4][0] = 'O'
-            #self.current_state[2][0] = 'O'
-            #self.current_state[0][2] = 'O'
-            #self.current_state[0][3] = 'O'
-            self.draw_board()
-
         score = 0
 
         # Rows
         for y in range(self.n):
-            s = self.simple_heuristic_default_values()
+            s = 0
             for x in range(self.n):
                 s = self.simple_heuristic_evaluator(x, y, s)
             score = score + s
 
         # Columns
         for x in range(self.n):
-            s = self.simple_heuristic_default_values()
+            s = 0
             for y in range(self.n):
                 s = self.simple_heuristic_evaluator(x, y, s)
             score = score + s
@@ -405,7 +382,7 @@ class Game:
         for d in range(len(self.diagonal_starting_positions)):
             st_x = self.diagonal_starting_positions[d][0]
             st_y = self.diagonal_starting_positions[d][1]
-            s = self.simple_heuristic_default_values()
+            s = 0
             while (st_x < self.n and st_y < self.n):
                 s = self.simple_heuristic_evaluator(st_x, st_y, s)
                 st_x = st_x + 1
@@ -416,7 +393,7 @@ class Game:
         for d in range(len(self.other_diagonal_starting_positions)):
             st_x = self.diagonal_starting_positions[d][0]
             st_y = self.diagonal_starting_positions[d][1]
-            s = self.simple_heuristic_default_values()
+            s = 0
             while (st_x > 0 and st_y < self.n):
                 s = self.simple_heuristic_evaluator(st_x, st_y, s)
                 st_x = st_x - 1
@@ -428,58 +405,28 @@ class Game:
 
         return score
 
-    def simple_heuristic_default_values(self):
-        # [0] Current score for the current row/col/diagonal
-        return 0
-
     def simple_heuristic_evaluator(self, x, y, s):
         if (self.current_state[x][y] == 'O'):
-            s = s + 1
+            s = s + 2
         elif (self.current_state[x][y] == 'X'):
-            s = s - 1
+            s = s - 2
 
         return s
 
     # Complex heuristic
     # The idea is to check all rows/columns/diagonals
-    # If we have a 'streak' going (a row/column/diagonal without an opposing piece)
-    # the score will be exponentially increased
-    # If a move will be blocked by opponent piece, a wall, or a block, the streak is over and no score increase (TODO)
+    # If we have a 'psuedo win', AKA a possible winning line of length s filled with empty tiles and at least one piece
+    # we add/substract to a total score. The score we add/subtract will depend on how many empty tiles are left
 
-    # O win = inf
-    # X win = -inf
-    # Favors O = positive value (higher value = favors O more than X)
-    # Favors X = negative value (lower value = favors X more than O)
+    # ['X', '.', '.' '.'], s=4, will produce small negative score
+    # ['X', 'X', '.' '.'], s=4, will produce larger negative score
+    # ['X', 'X', 'X' '.'], s=4, will produce vert large negative score
+
+    # O win = 1000000
+    # X win = -1000000
+    # Favors O = positive value (higher value = favors O more)
+    # Favors X = negative value (lower value = favors X more)
     def complex_heuristic(self, testing=False):
-        if (testing == True):
-            #self.current_state[1][0] = 'X'
-            #self.current_state[2][1] = 'X'
-            #self.current_state[2][2] = 'O'
-            #self.current_state[6][0] = 'O'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[5][0] = 'X'
-            #self.current_state[2][0] = 'X'
-            #self.current_state[3][0] = 'X'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[3][1] = 'X'
-            #self.current_state[2][2] = 'X'
-            #self.current_state[4][0] = 'X'
-            #self.current_state[3][1] = 'X'
-            #self.current_state[2][2] = 'X'
-            #self.current_state[1][3] = 'X'
-            #self.current_state[3][3] = 'O'
-            #self.current_state[4][4] = 'O'
-            #self.current_state[1][0] = 'X'
-            #self.current_state[0][3] = 'X'
-            #self.current_state[0][1] = 'X'
-            #self.current_state[2][0] = 'O'
-            #self.current_state[3][0] = 'X'
-            #self.current_state[4][0] = 'O'
-            #self.current_state[2][0] = 'O'
-            #self.current_state[0][2] = 'O'
-            #self.current_state[0][3] = 'O'
-            self.draw_board()
-
         score = 0
 
         # Rows
@@ -487,9 +434,7 @@ class Game:
             dx = 0
             while (dx < self.n):
                 s, dx, _ = self.complex_heuristic_evaluator(dx, rows, "row")
-                if (s == np.inf or s == -np.inf):
-                    if (testing):
-                        print(s)
+                if (s == 1000000 or s == -1000000): # someone won
                     return s
 
                 score = score + s
@@ -499,9 +444,7 @@ class Game:
             dy = 0
             while (dy < self.n):
                 s, _, dy = self.complex_heuristic_evaluator(columns, dy, "column")
-                if (s == np.inf or s == -np.inf):
-                    if (testing):
-                        print(s)
+                if (s == 1000000 or s == -1000000): # someone won
                     return s
 
                 score = score + s
@@ -511,10 +454,8 @@ class Game:
             dx = self.diagonal_starting_positions[i][0]
             dy = self.diagonal_starting_positions[i][1]
             while (dx < self.n and dy < self.n):
-                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "column")
-                if (s == np.inf or s == -np.inf):
-                    if (testing):
-                        print(s)
+                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "diagonal-ltr")
+                if (s == 1000000 or s == -1000000): # someone won
                     return s
 
                 score = score + s
@@ -524,23 +465,13 @@ class Game:
             dx = self.other_diagonal_starting_positions[i][0]
             dy = self.other_diagonal_starting_positions[i][1]
             while (dx < self.n and dy < self.n):
-                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "column")
-                if (s == np.inf or s == -np.inf):
-                    if (testing):
-                        print(s)
+                s, dx, dy = self.complex_heuristic_evaluator(dx, dy, "diagonal-rtl")
+                if (s == 1000000 or s == -1000000): # someone won
                     return s
 
                 score = score + s
 
-        if (testing):
-            print(score)
-
         return score
-
-    def complex_heuristic_default_values(self):
-        # [0] Current score for the current row/col/diagonal
-        # [1] Previous state
-        return 0
 
     # Evaluates a given row/col/diagonal
     def complex_heuristic_evaluator(self, x, y, t):
@@ -580,14 +511,11 @@ class Game:
             return (0, di, dj)
 
         my_piece = self.current_state[di][dj]
-        opponent_piece = ''
 
         if (my_piece == 'O'):
             e = 1
-            opponent_piece = 'X'
         elif (my_piece == 'X'):
             e = -1
-            opponent_piece = 'O'
 
         s = 2
         cs = 1
@@ -603,9 +531,9 @@ class Game:
                 # Real win
                 if (cs >= self.s):
                     if (my_piece == 'O'):
-                        return (np.inf, di, dj)
+                        return (1000000, di, dj)
                     elif (my_piece == 'X'):
-                        return (-np.inf, di, dj)
+                        return (-1000000, di, dj)
             elif (self.current_state[di][dj] == '.'):
                 nws = nws + 1
             else:
@@ -684,7 +612,6 @@ class Game:
                 (x, y) = self.input_move()
             if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
                 print(F'Evaluation time: {round(end - start, 7)}s')
-                print(F"{x} {y}")
                 print(F'Player {self.player_turn} under AI control plays: {self.alphabet[x]} {y}')
 
             self.current_state[x][y] = self.player_turn
