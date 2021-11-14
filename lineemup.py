@@ -299,7 +299,7 @@ class Game:
                     self.current_state[i][j] = '.'
         return (value, x, y)
 
-    def alphabeta(self, depth, start_time, eval_method, alpha=-np.inf, beta=np.inf, max=False):
+    def alphabeta(self, depth, startDepth, start_time, eval_method, alpha=-np.inf, beta=np.inf, max=False):
         # Minimizing for 'X' and maximizing for 'O'
         # Possible values are:
         # -1 - win for 'X'
@@ -312,6 +312,8 @@ class Game:
 
         x = None
         y = None
+        ARD = 0
+        Children = 0
         result = self.is_end()
         elapsed_t = time.time() - start_time
         global DepthList
@@ -320,27 +322,31 @@ class Game:
                 global SimpleCounter
                 SimpleCounter += 1
                 DepthList[depth] = DepthList[depth]+1
-                return (self.simple_heuristic(), x, y)
+                return (self.simple_heuristic(), x, y, startDepth-depth)
             elif eval_method == self.COMPLEX_EVAL:
                 global ComplexCounter
                 ComplexCounter +=1
                 DepthList[depth] = DepthList[depth]+1
-                return (self.complex_heuristic(), x, y)
+                return (self.complex_heuristic(), x, y, startDepth-depth)
 
         for i in range(0, self.n):
             for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
                     if max:
                         self.current_state[i][j] = 'O'
-                        (v, _, _) = self.alphabeta(depth-1, start_time, eval_method, alpha, beta, max=False)
+                        (v, _, _, childARD) = self.alphabeta(depth-1, startDepth, start_time, eval_method, alpha, beta, max=False)
+                        ARD += childARD
+                        Children += 1
                         if v > value:
                             value = v
                             x = i
                             y = j
                     else:
                         self.current_state[i][j] = 'X'
-                        (v, _, _) = self.alphabeta(depth-1, start_time, eval_method, alpha, beta, max=True)
+                        (v, _, _, childARD) = self.alphabeta(depth-1, startDepth, start_time, eval_method, alpha, beta, max=True)
                         if v < value:
+                            ARD+= childARD
+                            Children += 1
                             value = v
                             x = i
                             y = j
@@ -349,16 +355,16 @@ class Game:
 
                     if max:
                         if value >= beta:
-                            return (value, x, y)
+                            return (value, x, y, ARD/Children)
                         if value > alpha:
                             alpha = value
                     else:
                         if value <= alpha:
-                            return (value, x, y)
+                            return (value, x, y, ARD/Children)
                         if value < beta:
                             beta = value
 
-        return (value, x, y)
+        return (value, x, y, ARD/Children)
 
     # Simple heuristic
     # The idea is to check all rows/columns/diagonals
@@ -589,14 +595,15 @@ class Game:
                 if self.player_turn == 'X':
                     if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
                         DepthList = [0] * self.d1
-                        (m, x, y) = self.alphabeta(self.d1, start, px_eval, max=False)
+                        (m, x, y, ARD) = self.alphabeta(self.d1, self.d1, start, px_eval, max=False)
                 else:
                     if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
                         DepthList = [0] * self.d2
-                        (m, x, y) = self.alphabeta(self.d2, start, po_eval, max=True)
+                        (m, x, y, ARD) = self.alphabeta(self.d2, self.d2, start, po_eval, max=True)
 
             end = time.time()
-
+            print("ARD:")
+            print(ARD)
             if (player_o == self.AI and (end - start) > self.ai_timeout) or (player_x == self.AI and (end - start) > self.ai_timeout):
                 if self.player_turn == 'X':
                     self.result = 'O'
