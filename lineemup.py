@@ -53,6 +53,35 @@ class Game:
             if (y != self.n - 1):
                 self.other_diagonal_starting_positions.append([self.n - 1, x])
             x = x + 1
+    def writeBoardToFile(self, file):
+        # Print column headers (from the alphabet)
+        # Build row separator
+        rowsep = '-----'
+        file.write("\n \n Drawing Current Board: \n \n" )
+        file.write('\n    |  ')
+        for x in range(self.n):
+            file.write(self.alphabet[x] + "  |  ")
+            rowsep = rowsep + '------'
+
+        file.write(F"\n{rowsep}\n")
+
+        for y in range(self.n):
+            # Print row headers (0-n)
+            file.write(str(y))
+
+            # Print the actual contents of the board
+            p = self.current_state[0][y].replace('.', ' ')
+            file.write(F'   |  {p}  | ')
+
+            for x in range(1, self.n):
+                p = self.current_state[x][y].replace('.', ' ') # In code, we have a '.' representing a blank square, however, we can just show a blank square to the user
+
+                # Print the actual contents of the board
+                file.write(F'{p}  | ')
+
+            file.write(F"\n{rowsep}\n")
+
+        file.write("\n")
 
     def draw_board(self):
         # Print column headers (from the alphabet)
@@ -250,7 +279,7 @@ class Game:
 
         return self.player_turn
 
-    def minimax(self, depth, start_time, eval_method, max=False):
+    def minimax(self, depth, startDepth, start_time, eval_method, max=False):
         # Minimizing for 'X' and maximizing for 'O'
         # Possible values are:
         # -1 - win for 'X'
@@ -263,6 +292,8 @@ class Game:
 
         x = None
         y = None
+        ARD = 0
+        Children = 0
         result = self.is_end()
         elapsed_t = time.time() - start_time
         global DepthList
@@ -271,33 +302,37 @@ class Game:
                 global SimpleCounter
                 SimpleCounter += 1
                 DepthList[depth] = DepthList[depth]+1
-                return (self.simple_heuristic(), x, y)
+                return (self.simple_heuristic(), x, y, startDepth-depth)
             elif eval_method == self.COMPLEX_EVAL:
                 global ComplexCounter
                 ComplexCounter += 1
                 DepthList[depth] = DepthList[depth]+1
-                return (self.complex_heuristic(), x, y)
+                return (self.complex_heuristic(), x, y, startDepth-depth)
 
         for i in range(0, self.n):
             for j in range(0, self.n):
                 if self.current_state[i][j] == '.':
                     if max:
                         self.current_state[i][j] = 'O'
-                        (v, _, _) = self.minimax(depth-1, start_time, eval_method, max=False)
+                        (v, _, _, childARD) = self.minimax(depth-1,startDepth, start_time, eval_method, max=False)
                         if v > value:
+                            ARD += childARD
+                            Children += 1
                             value = v
                             x = i
                             y = j
                     else:
                         self.current_state[i][j] = 'X'
-                        (v, _, _) = self.minimax(depth-1, start_time, eval_method, max=True)
+                        (v, _, _, childARD) = self.minimax(depth-1,startDepth, start_time, eval_method, max=True)
                         if v < value:
+                            ARD += childARD
+                            Children += 1
                             value = v
                             x = i
                             y = j
 
                     self.current_state[i][j] = '.'
-        return (value, x, y)
+        return (value, x, y, ARD/Children)
 
     def alphabeta(self, depth, startDepth, start_time, eval_method, alpha=-np.inf, beta=np.inf, max=False):
         # Minimizing for 'X' and maximizing for 'O'
@@ -314,6 +349,7 @@ class Game:
         y = None
         ARD = 0
         Children = 0
+
         result = self.is_end()
         elapsed_t = time.time() - start_time
         global DepthList
@@ -567,15 +603,71 @@ class Game:
             player_o = self.HUMAN
         if po_eval == None:
             po_eval == self.SIMPLE_EVAL
+        fileName = "gametrace" + str(self.n) + str(self.b) + str(self.s) + str(self.ai_timeout) + ".txt"
+        f = open(fileName, "w")
+
+        f.write("The board size is: " + str(self.n) + "\n")
+        f.write("The number of blocks are: " + str(self.b) + "\n")
+        f.write("The winning connection length is: " + str(self.s) + "\n")
+        f.write("The AI timeout is: " + str(self.ai_timeout) + "\n")
+        f.write("The blocks are positioned at: " + str(self.barray) + "\n")
+        if (player_x == self.HUMAN):
+            f.write("Player 1 is a human\n")
+        else:
+            f.write("Player 1 is an AI\n")
+            f.write("The maximum depth of the adversarial search for player 1 is: " + str(self.d1) + "\n")
+            if (algo == self.MINIMAX):
+                f.write("Player 1 uses minimax\n")
+            else:
+                f.write("Player 1 uses alpha-beta\n")
+            f.write("Player 1 uses the eval function " + str(px_eval) + "\n")
+
+        if (player_o == self.HUMAN):
+            f.write("Player 2 is a human\n")
+        else:
+            f.write("Player 2 is an AI\n")
+            f.write("The maximum depth of the adversarial search for player 2 is: " + str(self.d2) + "\n")
+            if (algo == self.MINIMAX):
+                f.write("Player 2 uses minimax\n")
+            else:
+                f.write("Player 2 uses alpha-beta\n")
+            f.write("Player 2 uses the eval function " + str(po_eval) + "\n")
+
+        self.writeBoardToFile(f)
 
         #self.complex_heuristic()
         #return
         global ComplexCounter
         global SimpleCounter
         global DepthList
+        averageHeuristic = []
+        totalStatesEvaluated = 0
+        averageAverageDepth = []
+        totalDepths = [0]*10
+
+        averageARD = []
+        moveCounter = 0
         while True:
             self.draw_board()
             if self.check_end():
+                if self.result != None:
+                    if self.result == 'X':
+                        f.write('\nThe winner is X!\n')
+                    elif self.result == 'O':
+                        f.write('\nThe winner is O!\n')
+                    elif self.result == '.':
+                        f.write("\nIt's a tie!\n")
+                f.write("\n\nThe average time taken per heuristic was: " + str(sum(averageHeuristic)/len(averageHeuristic)) + "\n")
+                f.write("The total number of states evaluated was: " + str(totalStatesEvaluated) + "\n")
+                f.write("The average of the average depths was: " + str(sum(averageAverageDepth)/len(averageAverageDepth)) + "\n")
+                if(self.d1 > self.d2):
+                    for dd in range (0, self.d1):
+                        f.write("Total states evaluated at depth " + str(dd+1) + ": " + str(totalDepths[dd]) + "\n")
+                else:
+                    for dd in range (0, self.d2):
+                        f.write("Total states evaluated at depth " + str(dd+1) + ": " + str(totalDepths[dd]) + "\n")
+                f.write("The average ARD of the moves taken in the game was: " + str(sum(averageARD)/len(averageARD)) + "\n")
+                f.write("The total number of moves taken in the game was: " + str(moveCounter) + "\n\n")
                 return
 
             ComplexCounter = 0
@@ -586,11 +678,11 @@ class Game:
                 if self.player_turn == 'X':
                     if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
                         DepthList = [0] * self.d1
-                        (_, x, y) = self.minimax(self.d1, start, px_eval, max=False)
+                        (_, x, y, ARD) = self.minimax(self.d1, self.d1,start, px_eval, max=False)
                 else:
                     if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
                         DepthList = [0] * self.d2
-                        (_, x, y) = self.minimax(self.d2, start, po_eval, max=True)
+                        (_, x, y, ARD) = self.minimax(self.d2, self.d2, start, po_eval, max=True)
             elif algo == self.ALPHABETA:
                 if self.player_turn == 'X':
                     if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
@@ -600,10 +692,9 @@ class Game:
                     if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
                         DepthList = [0] * self.d2
                         (m, x, y, ARD) = self.alphabeta(self.d2, self.d2, start, po_eval, max=True)
-
+            moveCounter += 1
             end = time.time()
-            print("ARD:")
-            print(ARD)
+
             if (player_o == self.AI and (end - start) > self.ai_timeout) or (player_x == self.AI and (end - start) > self.ai_timeout):
                 if self.player_turn == 'X':
                     self.result = 'O'
@@ -611,32 +702,61 @@ class Game:
                     self.result = 'X'
                 print(F"Player {('X' if self.player_turn == 'X' else 'O')} has taken too long to make a move.")
                 print(F"The winner is {('O' if self.player_turn == 'X' else 'X')}!")
+                f.write(F"Player {('X' if self.player_turn == 'X' else 'O')} has taken too long to make a move.\n")
+                f.write(F"The winner is {('O' if self.player_turn == 'X' else 'X')}!\n")
                 return
 
             if (self.player_turn == 'X' and player_x == self.HUMAN) or (self.player_turn == 'O' and player_o == self.HUMAN):
                 if self.recommend:
+
                     print(F'Evaluation time: {round(end - start, 7)}s')
                     print(F'Recommended move: {self.alphabet[x]} {y}')
+                    f.write(F'Evaluation time: {round(end - start, 7)}s\n')
+                    f.write(F'Recommended move: {self.alphabet[x]} {y}\n')
 
                 (x, y) = self.input_move()
             if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
+                averageHeuristic.append(round(end - start, 7))
                 print(F'Evaluation time: {round(end - start, 7)}s')
                 print(F'Player {self.player_turn} under AI control plays: {self.alphabet[x]} {y}')
+                f.write(F'\n\nPlayer {self.player_turn} under AI control plays: {self.alphabet[x]} {y}\n')
+
+
+
+            self.current_state[x][y] = self.player_turn
+            self.writeBoardToFile(f)
+            f.write(F'Evaluation time: {round(end - start, 7)}s \n')
+
+
+
+            if(ComplexCounter != 0):
+                 totalStatesEvaluated += ComplexCounter
+                 f.write(str(ComplexCounter) + " states were evaluated by the heuristic function\n")
+            if(SimpleCounter != 0):
+                 totalStatesEvaluated += SimpleCounter
+                 f.write(str(SimpleCounter) + " states were evaluated by the heuristic function\n")
 
             if self.player_turn == 'X':
                 for z in range (0, self.d1):
+                    totalDepths[self.d1-z] += DepthList[z]
+                    f.write("States evaluated at depth " + str(self.d1-z) + ": " + str(DepthList[z]) + "\n")
                     averageDepth += DepthList[z]*(self.d1-z)
                 averageDepth = averageDepth/sum(DepthList)
+                averageAverageDepth.append(averageDepth)
+                f.write("This gives an average depth of: " + str(averageDepth) + "\n")
             if self.player_turn == 'O':
                 for z in range (0, self.d2):
+                    totalDepths[self.d2-z] += DepthList[z]
+                    f.write("States evaluated at depth " + str(self.d2-z) + ": " + str(DepthList[z]) + "\n")
                     averageDepth += DepthList[z]*(self.d2-z)
                 averageDepth = averageDepth/sum(DepthList)
-
-            print(ComplexCounter)
-            print(DepthList)
-            print(averageDepth)
-            self.current_state[x][y] = self.player_turn
+                averageAverageDepth.append(averageDepth)
+                f.write("This gives an average depth of: " + str(averageDepth) + "\n")
+            f.write("The average recursion depth is: " + str(ARD) + "\n")
+            averageARD.append(ARD)
             self.switch_player()
+
+        f.close
 
 class GameBuilder:
     def build_game(config_path):
