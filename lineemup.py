@@ -17,13 +17,15 @@ class Game:
     SIMPLE_EVAL = 4
     COMPLEX_EVAL = 5
 
-    def __init__(self, n, b, barray, s, d1, d2, ai_timeout, recommend=True):
+    def __init__(self, n, b, barray, s, d1, d2, a1, a2, ai_timeout, recommend=True):
         self.n = n
         self.b = b
         self.barray = barray
         self.s = s
         self.d1 = d1
         self.d2 = d2
+        self.a1 = a1
+        self.a2 = a2
         self.ai_timeout = ai_timeout
         self.recommend = recommend
 
@@ -592,9 +594,11 @@ class Game:
 
         return (s, di, dj)
 
-    def play(self, algo=None, player_x=None, player_o=None, px_eval=None, po_eval=None):
-        if algo == None:
-            algo = self.ALPHABETA
+    def play(self, px_algo=None, po_algo=None, player_x=None, player_o=None, px_eval=None, po_eval=None):
+        if px_algo == None:
+            px_algo = self.ALPHABETA
+        if po_algo == None:
+            po_algo = self.ALPHABETA
         if player_x == None:
             player_x = self.HUMAN
         if px_eval == None:
@@ -616,7 +620,7 @@ class Game:
         else:
             f.write("Player 1 is an AI\n")
             f.write("The maximum depth of the adversarial search for player 1 is: " + str(self.d1) + "\n")
-            if (algo == self.MINIMAX):
+            if (px_algo== self.MINIMAX):
                 f.write("Player 1 uses minimax\n")
             else:
                 f.write("Player 1 uses alpha-beta\n")
@@ -627,7 +631,7 @@ class Game:
         else:
             f.write("Player 2 is an AI\n")
             f.write("The maximum depth of the adversarial search for player 2 is: " + str(self.d2) + "\n")
-            if (algo == self.MINIMAX):
+            if (po_algo == self.MINIMAX):
                 f.write("Player 2 uses minimax\n")
             else:
                 f.write("Player 2 uses alpha-beta\n")
@@ -674,24 +678,27 @@ class Game:
             SimpleCounter = 0
             averageDepth = 0
             start = time.time()
-            if algo == self.MINIMAX:
-                if self.player_turn == 'X':
-                    if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
+
+            if self.player_turn == 'X':
+                if (px_algo == self.MINIMAX):
+                     if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
                         DepthList = [0] * self.d1
                         (_, x, y, ARD) = self.minimax(self.d1, self.d1,start, px_eval, max=False)
                 else:
-                    if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
-                        DepthList = [0] * self.d2
-                        (_, x, y, ARD) = self.minimax(self.d2, self.d2, start, po_eval, max=True)
-            elif algo == self.ALPHABETA:
-                if self.player_turn == 'X':
                     if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
                         DepthList = [0] * self.d1
                         (m, x, y, ARD) = self.alphabeta(self.d1, self.d1, start, px_eval, max=False)
+            else:
+                if (po_algo == self.MINIMAX):
+                    if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
+                        DepthList = [0] * self.d2
+                        (_, x, y, ARD) = self.minimax(self.d2, self.d2, start, po_eval, max=True)
                 else:
                     if ((player_o == self.HUMAN and self.recommend == True) or (player_o == self.AI)):
                         DepthList = [0] * self.d2
                         (m, x, y, ARD) = self.alphabeta(self.d2, self.d2, start, po_eval, max=True)
+
+
             moveCounter += 1
             end = time.time()
 
@@ -778,8 +785,10 @@ class GameBuilder:
                         max_depthD2 = int(line.split('=')[1])
                     elif (line.split('=')[0] == "aiTimeout"):
                         ai_timeout = int(line.split('=')[1])
-                    elif (line.split('=')[0] == "alphabeta"):
-                        alphabeta = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "alphabeta1"):
+                        alphabeta1 = int(line.split('=')[1])
+                    elif (line.split('=')[0] == "alphabeta2"):
+                        alphabeta2 = int(line.split('=')[1])
                     elif (line.split('=')[0] == "p1"):
                         p1 = int(line.split('=')[1])
                     elif (line.split('=')[0] == "p2"):
@@ -822,13 +831,13 @@ class GameBuilder:
             print(F"ERROR: Invalid game configuration. Winning line up size must be between 3 and {board_size} inclusive")
             return (None, None, None, None, None, None)
 
-        return (alphabeta, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, ai_timeout, recommend=True))
+        return (alphabeta1, alphabeta2, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, alphabeta1, alphabeta2, ai_timeout, recommend=True))
 
 def main():
     game_config = "config.ini"
-    algorithm, px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
+    ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
     if (g != None):
-        g.play(algo=algorithm, player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
+        g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
 
 if __name__ == "__main__":
     main()
