@@ -8,7 +8,7 @@ import sys
 ComplexCounter = 0
 SimpleCounter = 0
 DepthList = [0]
-
+totalDepths = []
 class Game:
     MINIMAX = 0
     ALPHABETA = 1
@@ -624,7 +624,10 @@ class Game:
                 f.write("Player 1 uses minimax\n")
             else:
                 f.write("Player 1 uses alpha-beta\n")
-            f.write("Player 1 uses the eval function " + str(px_eval) + "\n")
+            if(px_eval == 5):
+                f.write("Player 1 uses the complex heuristic function \n")
+            else:
+                f.write("Player 1 uses the simple heuristic function \n")
 
         if (player_o == self.HUMAN):
             f.write("Player 2 is a human\n")
@@ -635,19 +638,32 @@ class Game:
                 f.write("Player 2 uses minimax\n")
             else:
                 f.write("Player 2 uses alpha-beta\n")
-            f.write("Player 2 uses the eval function " + str(po_eval) + "\n")
+            if(po_eval == 5):
+                f.write("Player 2 uses the complex heuristic function \n")
+            else:
+                f.write("Player 2 uses the simple heuristic function \n")
 
         self.writeBoardToFile(f)
 
         #self.complex_heuristic()
         #return
+        global totalDepths
+        totalDepths = []
+        if(self.d2 > self.d1):
+            for ddd in range (0, self.d2):
+                totalDepths.append(0)
+        else:
+            for ddd in range (0, self.d1):
+                totalDepths.append(0)
+
+        print(str(len(totalDepths)))
         global ComplexCounter
         global SimpleCounter
         global DepthList
         averageHeuristic = []
         totalStatesEvaluated = 0
         averageAverageDepth = []
-        totalDepths = [0]*10
+
 
         averageARD = []
         moveCounter = 0
@@ -745,7 +761,7 @@ class Game:
 
             if self.player_turn == 'X':
                 for z in range (0, self.d1):
-                    totalDepths[self.d1-z] += DepthList[z]
+                    totalDepths[self.d1-1-z] += DepthList[z]
                     f.write("States evaluated at depth " + str(self.d1-z) + ": " + str(DepthList[z]) + "\n")
                     averageDepth += DepthList[z]*(self.d1-z)
                 averageDepth = averageDepth/sum(DepthList)
@@ -753,7 +769,7 @@ class Game:
                 f.write("This gives an average depth of: " + str(averageDepth) + "\n")
             if self.player_turn == 'O':
                 for z in range (0, self.d2):
-                    totalDepths[self.d2-z] += DepthList[z]
+                    totalDepths[self.d2-1-z] += DepthList[z]
                     f.write("States evaluated at depth " + str(self.d2-z) + ": " + str(DepthList[z]) + "\n")
                     averageDepth += DepthList[z]*(self.d2-z)
                 averageDepth = averageDepth/sum(DepthList)
