@@ -29,6 +29,7 @@ class Game:
         self.n = n
         self.b = b
         self.barray = barray
+
         self.s = s
         self.d1 = d1
         self.d2 = d2
@@ -41,8 +42,7 @@ class Game:
 
     def initialize_game(self):
         self.current_state = np.full((self.n, self.n), '.')
-        if self.barray == 'r':
-            barray = [[0, 0], [0, 1]]
+
         for x in self.barray:
             self.current_state[x[0]][x[1]] = '~'
 
@@ -918,7 +918,8 @@ class GameBuilder:
 
         return (alphabeta1, alphabeta2, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, alphabeta1, alphabeta2, ai_timeout, recommend=True))
 
-def playrtimes(r, ax, ao,  px, po, px_e, po_e, g):
+def playrtimes(r, game_config):
+    ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
     global winnerTracker
     winnerTracker = []
     global gameCounterTracker
@@ -962,22 +963,32 @@ def playrtimes(r, ax, ao,  px, po, px_e, po_e, g):
 
     if (g != None):
         for _ in (1, r):
+            ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
             g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
 
-    switchDepthHelper = g.d1
-    g.d1 = g.d2
-    g.d2 = switchDepthHelper
-    switchAlphaBetaHelper = g.a1
-    g.a1 = g.a2
-    g.a2 = switchAlphaBetaHelper
+
+    # switchDepthHelper = g.d1
+    # g.d1 = g.d2
+    # g.d2 = switchDepthHelper
+    # switchAlphaBetaHelper = g.a1
+    # g.a1 = g.a2
+    # g .a2 = switchAlphaBetaHelper
+
     if (g != None):
         for _ in(1, r):
+            ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
+            switchDepthHelper = g.d1
+            g.d1 = g.d2
+            g.d2 = switchDepthHelper
+            switchAlphaBetaHelper = g.a1
+            g.a1 = g.a2
+            g .a2 = switchAlphaBetaHelper
             g.play(px_algo = ao, po_algo = ax , player_x=po, player_o=px, px_eval=po_e, po_eval=px_e)
 
     scoreFile.write("\nThe number of games played was: " + str(2*r) + "\n")
-    counte1 = 0;
-    counte2 = 0;
-    countTie = 0;
+    counte1 = 0
+    counte2 = 0
+    countTie = 0
     for win in range(0, (r*2)):
         if(winnerTracker[win] == 'e1'):
             counte1 += 1
@@ -1004,11 +1015,11 @@ def playrtimes(r, ax, ao,  px, po, px_e, po_e, g):
 
 def main():
     game_config = "config.ini"
-    ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
+    #ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
     #if (g != None):
      #   for _ in (0, 5):
       #      g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
-    playrtimes(2, ax, ao,  px, po, px_e, po_e, g)
+    playrtimes(2, game_config)
 
 if __name__ == "__main__":
     main()
