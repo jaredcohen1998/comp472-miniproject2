@@ -450,8 +450,8 @@ class Game:
 
         # Diagonals (right to left)
         for d in range(len(self.other_diagonal_starting_positions)):
-            st_x = self.diagonal_starting_positions[d][0]
-            st_y = self.diagonal_starting_positions[d][1]
+            st_x = self.other_diagonal_starting_positions[d][0]
+            st_y = self.other_diagonal_starting_positions[d][1]
             s = 0
             while (st_x > -1 and st_y < self.n):
                 s = self.simple_heuristic_evaluator(st_x, st_y, s)
@@ -1042,7 +1042,7 @@ def playrtimes(r, game_config):
 
 def main():
     game_config = "config.ini"
-    generateScoreBoardFile = True
+    generateScoreBoardFile = False
 
     if (generateScoreBoardFile == True):
         playrtimes(5, game_config)
