@@ -950,7 +950,7 @@ def playrtimes(r, game_config):
     if(px_e == 5):
         scoreFile.write("Player 1 heuristic: Complex \n")
     else:
-        scoreFile.write("Player 1 heuristic: Complex \n")
+        scoreFile.write("Player 1 heuristic: Simple \n")
     scoreFile.write("Player 2 depth: " + str(g.d2) + "\n")
     if(g.a2 == 1):
         scoreFile.write("Player 2 algo: ALPHABETA\n")
@@ -996,8 +996,8 @@ def playrtimes(r, game_config):
             counte2 += 1
         elif(winnerTracker[win] == '.'):
             countTie += 1
-    scoreFile.write("e1 won a total of " + str(counte1) + " times, or " + str(counte1/gameCounterTracker*100) + " percent of the time. \n")
-    scoreFile.write("e2 won a total of " + str(counte2) + " times, or " + str(counte2/gameCounterTracker*100) + " percent of the time. \n")
+    scoreFile.write("e1 (Simple Heuristic) won a total of " + str(counte1) + " times, or " + str(counte1/gameCounterTracker*100) + " percent of the time. \n")
+    scoreFile.write("e2 (Complex Heuristic) won a total of " + str(counte2) + " times, or " + str(counte2/gameCounterTracker*100) + " percent of the time. \n")
     scoreFile.write("There was a total of " + str(countTie) + " ties.\n")
     scoreFile.write("\nAverage evaluation times: " + str(sum(averageTimeTracker)/len(averageTimeTracker)) + "\n")
     scoreFile.write("Average states evaluated per game: " + str(sum(totalStatesTracker)/len(totalStatesTracker))+ "\n")
