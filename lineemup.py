@@ -989,12 +989,12 @@ def playrtimes(r, game_config):
     counte1 = 0
     counte2 = 0
     countTie = 0
-    for win in range(0, (r*2)):
-        if(winnerTracker[win] == 'e1'):
+    for win in winnerTracker:
+        if(win == 'e1'):
             counte1 += 1
-        elif(winnerTracker[win] == 'e2'):
+        elif(win == 'e2'):
             counte2 += 1
-        elif(winnerTracker[win] == '.'):
+        elif(win == '.'):
             countTie += 1
     scoreFile.write("e1 (Simple Heuristic) won a total of " + str(counte1) + " times, or " + str(counte1/gameCounterTracker*100) + " percent of the time. \n")
     scoreFile.write("e2 (Complex Heuristic) won a total of " + str(counte2) + " times, or " + str(counte2/gameCounterTracker*100) + " percent of the time. \n")
