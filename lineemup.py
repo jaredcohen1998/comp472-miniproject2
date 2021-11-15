@@ -309,7 +309,7 @@ class Game:
         result = self.is_end()
         elapsed_t = time.time() - start_time
         global DepthList
-        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.1:
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.2:
             if eval_method == self.SIMPLE_EVAL:
                 global SimpleCounter
                 SimpleCounter += 1
@@ -365,7 +365,7 @@ class Game:
         result = self.is_end()
         elapsed_t = time.time() - start_time
         global DepthList
-        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.1:
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.2:
             if eval_method == self.SIMPLE_EVAL:
                 global SimpleCounter
                 SimpleCounter += 1
@@ -772,6 +772,40 @@ class Game:
                 print(F"The winner is {('O' if self.player_turn == 'X' else 'X')}!")
                 f.write(F"Player {('X' if self.player_turn == 'X' else 'O')} has taken too long to make a move.\n")
                 f.write(F"The winner is {('O' if self.player_turn == 'X' else 'X')}!\n")
+
+                if self.result == 'X':
+                    if(px_eval == 4):
+                        winnerTracker.append('e1')
+                    if(px_eval == 5):
+                        winnerTracker.append('e2')
+                elif self.result == 'O':
+                    f.write('\nThe winner is O!\n')
+                    if(po_eval == 4):
+                        winnerTracker.append('e1')
+                    if(po_eval == 5):
+                        winnerTracker.append('e2')
+                elif self.result == '.':
+                    f.write("\nIt's a tie!\n")
+                    winnerTracker.append('.')
+
+                f.write("\n\nThe average time taken per heuristic was: " + str(sum(averageHeuristic)/len(averageHeuristic)) + "\n")
+                averageTimeTracker.append(sum(averageHeuristic)/len(averageHeuristic))
+                f.write("The total number of states evaluated was: " + str(totalStatesEvaluated) + "\n")
+                totalStatesTracker.append(totalStatesEvaluated)
+                f.write("The average of the average depths was: " + str(sum(averageAverageDepth)/len(averageAverageDepth)) + "\n")
+                totalAverageDepthTracker.append(sum(averageAverageDepth)/len(averageAverageDepth))
+                if(self.d1 > self.d2):
+                    for dd in range (0, self.d1):
+                        f.write("Total states evaluated at depth " + str(dd+1) + ": " + str(totalDepths[dd]) + "\n")
+                        totalDepthsTracker[dd] += totalDepths[dd]
+                else:
+                    for dd in range (0, self.d2):
+                        f.write("Total states evaluated at depth " + str(dd+1) + ": " + str(totalDepths[dd]) + "\n")
+                        totalDepthsTracker[dd] += totalDepths[dd]
+                f.write("The average ARD of the moves taken in the game was: " + str(sum(averageARD)/len(averageARD)) + "\n")
+                totalARDTracker.append(sum(averageARD)/len(averageARD))
+                f.write("The total number of moves taken in the game was: " + str(moveCounter) + "\n\n")
+                totalMovesTracker.append(moveCounter)
                 return
 
             if (self.player_turn == 'X' and player_x == self.HUMAN) or (self.player_turn == 'O' and player_o == self.HUMAN):
