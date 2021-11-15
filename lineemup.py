@@ -787,13 +787,14 @@ class Game:
                 elif self.result == '.':
                     f.write("\nIt's a tie!\n")
                     winnerTracker.append('.')
-
-                f.write("\n\nThe average time taken per heuristic was: " + str(sum(averageHeuristic)/len(averageHeuristic)) + "\n")
-                averageTimeTracker.append(sum(averageHeuristic)/len(averageHeuristic))
+                if(len(averageHeuristic) != 0):
+                    f.write("\n\nThe average time taken per heuristic was: " + str(sum(averageHeuristic)/len(averageHeuristic)) + "\n")
+                    averageTimeTracker.append(sum(averageHeuristic)/len(averageHeuristic))
                 f.write("The total number of states evaluated was: " + str(totalStatesEvaluated) + "\n")
                 totalStatesTracker.append(totalStatesEvaluated)
-                f.write("The average of the average depths was: " + str(sum(averageAverageDepth)/len(averageAverageDepth)) + "\n")
-                totalAverageDepthTracker.append(sum(averageAverageDepth)/len(averageAverageDepth))
+                if(len(averageAverageDepth) != 0):
+                    f.write("The average of the average depths was: " + str(sum(averageAverageDepth)/len(averageAverageDepth)) + "\n")
+                    totalAverageDepthTracker.append(sum(averageAverageDepth)/len(averageAverageDepth))
                 if(self.d1 > self.d2):
                     for dd in range (0, self.d1):
                         f.write("Total states evaluated at depth " + str(dd+1) + ": " + str(totalDepths[dd]) + "\n")
@@ -802,10 +803,12 @@ class Game:
                     for dd in range (0, self.d2):
                         f.write("Total states evaluated at depth " + str(dd+1) + ": " + str(totalDepths[dd]) + "\n")
                         totalDepthsTracker[dd] += totalDepths[dd]
-                f.write("The average ARD of the moves taken in the game was: " + str(sum(averageARD)/len(averageARD)) + "\n")
-                totalARDTracker.append(sum(averageARD)/len(averageARD))
+                if(len(averageARD) != 0):
+                    f.write("The average ARD of the moves taken in the game was: " + str(sum(averageARD)/len(averageARD)) + "\n")
+                    totalARDTracker.append(sum(averageARD)/len(averageARD))
                 f.write("The total number of moves taken in the game was: " + str(moveCounter) + "\n\n")
                 totalMovesTracker.append(moveCounter)
+                gameCounterTracker += 1
                 return
 
             if (self.player_turn == 'X' and player_x == self.HUMAN) or (self.player_turn == 'O' and player_o == self.HUMAN):
