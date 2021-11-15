@@ -17,6 +17,7 @@ totalDepthsTracker = []
 totalAverageDepthTracker = []
 totalARDTracker = []
 totalMovesTracker = []
+
 class Game:
     MINIMAX = 0
     ALPHABETA = 1
@@ -65,6 +66,7 @@ class Game:
             if (y != self.n - 1):
                 self.other_diagonal_starting_positions.append([self.n - 1, x])
             x = x + 1
+
     def writeBoardToFile(self, file):
         # Print column headers (from the alphabet)
         # Build row separator
@@ -89,7 +91,7 @@ class Game:
                 p = self.current_state[x][y].replace('.', ' ') # In code, we have a '.' representing a blank square, however, we can just show a blank square to the user
 
                 # Print the actual contents of the board
-                file.write(F'{p}  | ')
+                file.write(F' {p}  | ')
 
             file.write(F"\n{rowsep}\n")
 
@@ -570,12 +572,9 @@ class Game:
                     w = abs(n) ** 3
                     s = s + w
 
+                    # Real win
                     if (fnws + bnws == 0):
                         s = s + 100000000000
-                    #elif (fnws + bnws == 1):
-                    #s = s + 10000
-                    #elif (fnws + bnws == 2):
-                    #s = s + 1000
 
                     di = di - dx
                     dj = dj - dy
@@ -588,13 +587,10 @@ class Game:
                 w = abs(n) ** 3
                 s = s + w
 
+                # Real win
                 if (fnws + bnws == 0):
                     s = s + 100000000000
                     break
-                #elif (fnws + bnws == 1):
-                #s = s + 10000
-                #elif (fnws + bnws == 2):
-                #s = s + 1000
 
             di = di + dx
             dj = dj + dy
@@ -617,7 +613,8 @@ class Game:
             player_o = self.HUMAN
         if po_eval == None:
             po_eval == self.SIMPLE_EVAL
-        fileName = "gametrace" + str(self.n) + str(self.b) + str(self.s) + str(self.ai_timeout) + ".txt"
+
+        fileName = "game-traces\\gametrace-" + str(self.n) + str(self.b) + str(self.s) + str(self.ai_timeout) + ".txt"
         f = open(fileName, "w")
 
         f.write("The board size is: " + str(self.n) + "\n")
@@ -625,6 +622,7 @@ class Game:
         f.write("The winning connection length is: " + str(self.s) + "\n")
         f.write("The AI timeout is: " + str(self.ai_timeout) + "\n")
         f.write("The blocks are positioned at: " + str(self.barray) + "\n")
+
         if (player_x == self.HUMAN):
             f.write("Player 1 is a human\n")
         else:
@@ -655,8 +653,6 @@ class Game:
 
         self.writeBoardToFile(f)
 
-        #self.complex_heuristic()
-        #return
         global totalDepths
         totalDepths = []
         global totalDepthsTracker
@@ -675,7 +671,6 @@ class Game:
             for ddd in range (0, self.d1):
                 totalDepths.append(0)
 
-        print(str(len(totalDepths)))
         global ComplexCounter
         global SimpleCounter
         global DepthList
@@ -689,10 +684,9 @@ class Game:
         averageHeuristic = []
         totalStatesEvaluated = 0
         averageAverageDepth = []
-
-
         averageARD = []
         moveCounter = 0
+
         while True:
             self.draw_board()
             if self.check_end():
@@ -768,6 +762,7 @@ class Game:
                     self.result = 'O'
                 else:
                     self.result = 'X'
+
                 print(F"Player {('X' if self.player_turn == 'X' else 'O')} has taken too long to make a move.")
                 print(F"The winner is {('O' if self.player_turn == 'X' else 'X')}!")
                 f.write(F"Player {('X' if self.player_turn == 'X' else 'O')} has taken too long to make a move.\n")
@@ -787,6 +782,7 @@ class Game:
                 elif self.result == '.':
                     f.write("\nIt's a tie!\n")
                     winnerTracker.append('.')
+
                 if(len(averageHeuristic) != 0):
                     f.write("\n\nThe average time taken per heuristic was: " + str(sum(averageHeuristic)/len(averageHeuristic)) + "\n")
                     averageTimeTracker.append(sum(averageHeuristic)/len(averageHeuristic))
@@ -813,7 +809,6 @@ class Game:
 
             if (self.player_turn == 'X' and player_x == self.HUMAN) or (self.player_turn == 'O' and player_o == self.HUMAN):
                 if self.recommend:
-
                     print(F'Evaluation time: {round(end - start, 7)}s')
                     print(F'Recommended move: {self.alphabet[x]} {y}')
                     f.write(F'Evaluation time: {round(end - start, 7)}s\n')
@@ -826,13 +821,9 @@ class Game:
                 print(F'Player {self.player_turn} under AI control plays: {self.alphabet[x]} {y}')
                 f.write(F'\n\nPlayer {self.player_turn} under AI control plays: {self.alphabet[x]} {y}\n')
 
-
-
             self.current_state[x][y] = self.player_turn
             self.writeBoardToFile(f)
             f.write(F'Evaluation time: {round(end - start, 7)}s \n')
-
-
 
             if(ComplexCounter != 0):
                  totalStatesEvaluated += ComplexCounter
@@ -906,7 +897,6 @@ class GameBuilder:
             print(traceback.format_exc())
             return (None, None, None, None, None, None, None)
 
-
         # Size of board
         if (board_size < 3 or board_size > 10):
             print("ERROR: Invalid game configuration. Board size must be between 3 and 10 inclusive")
@@ -932,13 +922,10 @@ class GameBuilder:
                         block_array.append(randomXY)
                         blockfound = True
 
-
         # Number of blocks
         if (len(block_array) != block_count):
             print("ERROR: Invalid game configuration. Number of blocks does not match size of block array in config file")
             return (None, None, None, None, None, None, None)
-
-
 
         # Validation for the blocks placed
         for x in range(len(block_array)):
@@ -973,13 +960,15 @@ def playrtimes(r, game_config):
     totalARDTracker = []
     global totalMovesTracker
     totalMovesTracker = []
-    scorefileName = "Scoreboard" + str(g.n) + str(g.b) + str(g.s) + str(g.ai_timeout) + ".txt"
+
+    scorefileName = "scoreboard-traces\\scoreboard-" + str(g.n) + str(g.b) + str(g.s) + str(g.ai_timeout) + ".txt"
     scoreFile = open(scorefileName, "w")
     scoreFile.write("Gameboard size n: " + str(g.n) + "\n")
     scoreFile.write("Number of blocks b: " + str(g.b) + "\n")
     scoreFile.write("Winning connection length s: " + str(g.s) + "\n")
     scoreFile.write("AI timeout t: " + str(g.ai_timeout) + "\n")
     scoreFile.write("Player 1 depth: " + str(g.d1) + "\n")
+
     if(g.a1 == 1):
         scoreFile.write("Player 1 algo: ALPHABETA\n")
     else:
@@ -1002,7 +991,6 @@ def playrtimes(r, game_config):
         for _ in range (r):
             ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
             g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
-
 
     # switchDepthHelper = g.d1
     # g.d1 = g.d2
@@ -1033,12 +1021,14 @@ def playrtimes(r, game_config):
             counte2 += 1
         elif(win == '.'):
             countTie += 1
+
     scoreFile.write("e1 (Simple Heuristic) won a total of " + str(counte1) + " times, or " + str(counte1/gameCounterTracker*100) + " percent of the time. \n")
     scoreFile.write("e2 (Complex Heuristic) won a total of " + str(counte2) + " times, or " + str(counte2/gameCounterTracker*100) + " percent of the time. \n")
     scoreFile.write("There was a total of " + str(countTie) + " ties.\n")
     scoreFile.write("\nAverage evaluation times: " + str(sum(averageTimeTracker)/len(averageTimeTracker)) + "\n")
     scoreFile.write("Average states evaluated per game: " + str(sum(totalStatesTracker)/len(totalStatesTracker))+ "\n")
     scoreFile.write("Average of average depths: " + str(sum(totalAverageDepthTracker)/len(totalAverageDepthTracker)) + "\n")
+
     if(g.d1 > g.d2):
         for dd in range (0, g.d1):
             scoreFile.write("Average total states evaluated at depth " + str(dd+1) + ": " + str(totalDepthsTracker[dd]/(2*r)) + "\n")
@@ -1052,11 +1042,13 @@ def playrtimes(r, game_config):
 
 def main():
     game_config = "config.ini"
-    #ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
-    #if (g != None):
-     #   for _ in (0, 5):
-      #      g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
-    playrtimes(1, game_config)
+    generateScoreBoardFile = False
+
+    if (generateScoreBoardFile == True):
+        playrtimes(1, game_config)
+    else:
+        ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
+        g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
 
 if __name__ == "__main__":
     main()
