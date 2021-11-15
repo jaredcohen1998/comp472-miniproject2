@@ -270,7 +270,7 @@ class Game:
         result = self.is_end()
         elapsed_t = time.time() - start_time
 
-        if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout - 0.05:
             if eval == self.SIMPLE_EVAL:
                 return (self.simple_heuristic(), x, y)
             elif eval == self.COMPLEX_EVAL:
@@ -315,7 +315,7 @@ class Game:
         result = self.is_end()
         elapsed_t = time.time() - start_time           
         
-        if depth == 0 or result != None or elapsed_t >= self.ai_timeout:
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout - 0.05:
             if eval == self.SIMPLE_EVAL:
                 return (self.simple_heuristic(), x, y)
             elif eval == self.COMPLEX_EVAL:
