@@ -1,5 +1,5 @@
 # based on code from https://stackabuse.com/minimax-and-alpha-beta-pruning-in-python
-
+import random
 import time
 import numpy as np
 import traceback
@@ -41,6 +41,8 @@ class Game:
 
     def initialize_game(self):
         self.current_state = np.full((self.n, self.n), '.')
+        if self.barray == 'r':
+            barray = [[0, 0], [0, 1]]
         for x in self.barray:
             self.current_state[x[0]][x[1]] = '~'
 
@@ -834,8 +836,12 @@ class GameBuilder:
                     elif (line.split('=')[0] == "blockCount"):
                         block_count = int(line.split('=')[1])
                     elif (line.split('=')[0] == "blockArray"):
-                        temp = iter(line.split('=')[1].split())
-                        block_array = [(int(ele.split(",")[0]), int(ele.split(",")[1])) for ele in temp]
+                        if(line.split('=')[1] == 'r\n'):
+                            randomBlockArray = True
+                        else:
+                            temp = iter(line.split('=')[1].split())
+                            block_array = [(int(ele.split(",")[0]), int(ele.split(",")[1])) for ele in temp]
+                            randomBlockArray = False
                     elif (line.split('=')[0] == "winLength"):
                         win_length = int(line.split('=')[1])
                     elif (line.split('=')[0] == "maxDepthD1"):
@@ -861,34 +867,54 @@ class GameBuilder:
         except Exception:
             print("ERROR: Could not open file", config_path)
             print(traceback.format_exc())
-            return (None, None, None, None, None, None)
+            return (None, None, None, None, None, None, None)
+
 
         # Size of board
         if (board_size < 3 or board_size > 10):
             print("ERROR: Invalid game configuration. Board size must be between 3 and 10 inclusive")
-            return (None, None, None, None, None, None)
-
-        # Number of blocks
-        if (len(block_array) != block_count):
-            print("ERROR: Invalid game configuration. Number of blocks does not match size of block array in config file")
-            return (None, None, None, None, None, None)
+            return (None, None, None, None, None, None, None)
 
         # Number of blocks
         if (block_count < 0 or block_count > 2 * board_size):
             print(F"ERROR: Invalid game configuration. Number of blocks placed must be between 0 and {2 * board_size} inclusive")
-            return (None, None, None, None, None, None)
+            return (None, None, None, None, None, None, None)
+
+        if (randomBlockArray):
+            block_array = []
+
+            for _ in range(0, block_count):
+                blockfound = False
+                while(not blockfound):
+                    randomX = random.randint(0,board_size-1)
+                    randomY = random.randint(0,board_size-1)
+                    randomXY = [randomX, randomY]
+                    if(block_array.__contains__(randomXY)):
+                        continue
+                    else:
+                        block_array.append(randomXY)
+                        blockfound = True
+
+
+        # Number of blocks
+        if (len(block_array) != block_count):
+            print("ERROR: Invalid game configuration. Number of blocks does not match size of block array in config file")
+            return (None, None, None, None, None, None, None)
+
+
 
         # Validation for the blocks placed
         for x in range(len(block_array)):
             block_placed = block_array[x]
             if (block_placed[0] >= board_size or block_placed[1] >= board_size):
                 print(F"ERROR: Invalid game configuration. Block {block_placed} not placed inside board")
-                return (None, None, None, None, None, None)
+                return (None, None, None, None, None, None, None)
 
         # Winning line up size
         if (win_length < 3 or win_length > board_size):
             print(F"ERROR: Invalid game configuration. Winning line up size must be between 3 and {board_size} inclusive")
-            return (None, None, None, None, None, None)
+            return (None, None, None, None, None, None, None)
+
 
         return (alphabeta1, alphabeta2, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, alphabeta1, alphabeta2, ai_timeout, recommend=True))
 
