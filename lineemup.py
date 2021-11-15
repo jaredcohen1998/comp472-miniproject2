@@ -9,6 +9,14 @@ ComplexCounter = 0
 SimpleCounter = 0
 DepthList = [0]
 totalDepths = []
+winnerTracker = []
+gameCounterTracker = 0
+averageTimeTracker = []
+totalStatesTracker = []
+totalDepthsTracker = []
+totalAverageDepthTracker = []
+totalARDTracker = []
+totalMovesTracker = []
 class Game:
     MINIMAX = 0
     ALPHABETA = 1
@@ -649,6 +657,15 @@ class Game:
         #return
         global totalDepths
         totalDepths = []
+        global totalDepthsTracker
+        if totalDepthsTracker == [] :
+            if(self.d2 > self.d1):
+                for ddd in range (0, self.d2):
+                    totalDepthsTracker.append(0)
+            else:
+                for ddd in range (0, self.d1):
+                    totalDepthsTracker.append(0)
+
         if(self.d2 > self.d1):
             for ddd in range (0, self.d2):
                 totalDepths.append(0)
@@ -660,6 +677,13 @@ class Game:
         global ComplexCounter
         global SimpleCounter
         global DepthList
+        global winnerTracker
+        global gameCounterTracker
+        global averageTimeTracker
+        global totalStatesTracker
+        global totalAverageDepthTracker
+        global totalARDTracker
+        global totalMovesTracker
         averageHeuristic = []
         totalStatesEvaluated = 0
         averageAverageDepth = []
@@ -670,24 +694,43 @@ class Game:
         while True:
             self.draw_board()
             if self.check_end():
+                gameCounterTracker += 1
                 if self.result != None:
                     if self.result == 'X':
                         f.write('\nThe winner is X!\n')
+                        if(px_eval == 4):
+                            winnerTracker.append('e1')
+                        if(px_eval == 5):
+                            winnerTracker.append('e2')
                     elif self.result == 'O':
                         f.write('\nThe winner is O!\n')
+                        if(po_eval == 4):
+                            winnerTracker.append('e1')
+                        if(po_eval == 5):
+                            winnerTracker.append('e2')
+
                     elif self.result == '.':
                         f.write("\nIt's a tie!\n")
+                        winnerTracker.append('.')
+
                 f.write("\n\nThe average time taken per heuristic was: " + str(sum(averageHeuristic)/len(averageHeuristic)) + "\n")
+                averageTimeTracker.append(sum(averageHeuristic)/len(averageHeuristic))
                 f.write("The total number of states evaluated was: " + str(totalStatesEvaluated) + "\n")
+                totalStatesTracker.append(totalStatesEvaluated)
                 f.write("The average of the average depths was: " + str(sum(averageAverageDepth)/len(averageAverageDepth)) + "\n")
+                totalAverageDepthTracker.append(sum(averageAverageDepth)/len(averageAverageDepth))
                 if(self.d1 > self.d2):
                     for dd in range (0, self.d1):
                         f.write("Total states evaluated at depth " + str(dd+1) + ": " + str(totalDepths[dd]) + "\n")
+                        totalDepthsTracker[dd] += totalDepths[dd]
                 else:
                     for dd in range (0, self.d2):
                         f.write("Total states evaluated at depth " + str(dd+1) + ": " + str(totalDepths[dd]) + "\n")
+                        totalDepthsTracker[dd] += totalDepths[dd]
                 f.write("The average ARD of the moves taken in the game was: " + str(sum(averageARD)/len(averageARD)) + "\n")
+                totalARDTracker.append(sum(averageARD)/len(averageARD))
                 f.write("The total number of moves taken in the game was: " + str(moveCounter) + "\n\n")
+                totalMovesTracker.append(moveCounter)
                 return
 
             ComplexCounter = 0
@@ -849,11 +892,97 @@ class GameBuilder:
 
         return (alphabeta1, alphabeta2, p1, p2, p1_eval, p2_eval, Game(board_size, block_count, block_array, win_length, max_depthD1, max_depthD2, alphabeta1, alphabeta2, ai_timeout, recommend=True))
 
+def playrtimes(r, ax, ao,  px, po, px_e, po_e, g):
+    global winnerTracker
+    winnerTracker = []
+    global gameCounterTracker
+    gameCounterTracker = 0
+    global averageTimeTracker
+    averageTimeTracker = []
+    global totalStatesTracker
+    totalStatesTracker = []
+    global totalDepthsTracker
+    totalDepthsTracker = []
+    global totalAverageDepthTracker
+    totalAverageDepthTracker = []
+    global totalARDTracker
+    totalARDTracker = []
+    global totalMovesTracker
+    totalMovesTracker = []
+    scorefileName = "Scoreboard" + str(g.n) + str(g.b) + str(g.s) + str(g.ai_timeout) + ".txt"
+    scoreFile = open(scorefileName, "w")
+    scoreFile.write("Gameboard size n: " + str(g.n) + "\n")
+    scoreFile.write("Number of blocks b: " + str(g.b) + "\n")
+    scoreFile.write("Winning connection length s: " + str(g.s) + "\n")
+    scoreFile.write("AI timeout t: " + str(g.ai_timeout) + "\n")
+    scoreFile.write("Player 1 depth: " + str(g.d1) + "\n")
+    if(g.a1 == 1):
+        scoreFile.write("Player 1 algo: ALPHABETA\n")
+    else:
+        scoreFile.write("Player 1 algo: Minimax\n")
+    if(px_e == 5):
+        scoreFile.write("Player 1 heuristic: Complex \n")
+    else:
+        scoreFile.write("Player 1 heuristic: Complex \n")
+    scoreFile.write("Player 2 depth: " + str(g.d2) + "\n")
+    if(g.a2 == 1):
+        scoreFile.write("Player 2 algo: ALPHABETA\n")
+    else:
+        scoreFile.write("Player 2 algo: Minimax\n")
+    if(po_e == 5):
+        scoreFile.write("Player 2 heuristic: Complex \n")
+    else:
+        scoreFile.write("Player 2 heuristic: Simple \n")
+
+    if (g != None):
+        for _ in (1, r):
+            g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
+
+    switchDepthHelper = g.d1
+    g.d1 = g.d2
+    g.d2 = switchDepthHelper
+    switchAlphaBetaHelper = g.a1
+    g.a1 = g.a2
+    g.a2 = switchAlphaBetaHelper
+    if (g != None):
+        for _ in(1, r):
+            g.play(px_algo = ao, po_algo = ax , player_x=po, player_o=px, px_eval=po_e, po_eval=px_e)
+
+    scoreFile.write("\nThe number of games played was: " + str(2*r) + "\n")
+    counte1 = 0;
+    counte2 = 0;
+    countTie = 0;
+    for win in range(0, (r*2)):
+        if(winnerTracker[win] == 'e1'):
+            counte1 += 1
+        elif(winnerTracker[win] == 'e2'):
+            counte2 += 1
+        elif(winnerTracker[win] == '.'):
+            countTie += 1
+    scoreFile.write("e1 won a total of " + str(counte1) + " times, or " + str(counte1/gameCounterTracker) + " percent of the time. \n")
+    scoreFile.write("e2 won a total of " + str(counte2) + " times, or " + str(counte2/gameCounterTracker) + " percent of the time. \n")
+    scoreFile.write("There was a total of " + str(countTie) + " ties.\n")
+    scoreFile.write("\nAverage evaluation times: " + str(sum(averageTimeTracker)/len(averageTimeTracker)) + "\n")
+    scoreFile.write("Average states evaluated per game: " + str(sum(totalStatesTracker)/len(totalStatesTracker))+ "\n")
+    scoreFile.write("Average of average depths: " + str(sum(totalAverageDepthTracker)/len(totalAverageDepthTracker)) + "\n")
+    if(g.d1 > g.d2):
+        for dd in range (0, g.d1):
+            scoreFile.write("Average total states evaluated at depth " + str(dd+1) + ": " + str(totalDepthsTracker[dd]/(2*r)) + "\n")
+    else:
+        for dd in range (0, g.d2):
+            scoreFile.write("Average Total states evaluated at depth " + str(dd+1) + ": " + str(totalDepthsTracker[dd]/(2*r)) + "\n")
+    scoreFile.write("Average ARD per game: " + str(sum(totalARDTracker)/len(totalARDTracker)) + "\n")
+    scoreFile.write("The average number of moves per game: " + str(sum(totalMovesTracker)/len(totalMovesTracker)) + "\n")
+
+    scoreFile.close
+
 def main():
     game_config = "config.ini"
     ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
-    if (g != None):
-        g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
+    #if (g != None):
+     #   for _ in (0, 5):
+      #      g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
+    playrtimes(2, ax, ao,  px, po, px_e, po_e, g)
 
 if __name__ == "__main__":
     main()
