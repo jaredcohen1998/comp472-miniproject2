@@ -420,7 +420,7 @@ class Game:
     # The idea is to check all rows/columns/diagonals
     # It will add 2 to the score if we see our piece in a given position
     # and subtract 2 to the score if we see an opponents piece
-    def simple_heuristic(self):
+    def simple_heuristic(self):        
         score = 0
 
         # Rows
@@ -450,8 +450,8 @@ class Game:
 
         # Diagonals (right to left)
         for d in range(len(self.other_diagonal_starting_positions)):
-            st_x = self.diagonal_starting_positions[d][0]
-            st_y = self.diagonal_starting_positions[d][1]
+            st_x = self.other_diagonal_starting_positions[d][0]
+            st_y = self.other_diagonal_starting_positions[d][1]
             s = 0
             while (st_x > -1 and st_y < self.n):
                 s = self.simple_heuristic_evaluator(st_x, st_y, s)
