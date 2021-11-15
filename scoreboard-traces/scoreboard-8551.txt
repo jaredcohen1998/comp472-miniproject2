@@ -1,0 +1,27 @@
+Gameboard size n: 8
+Number of blocks b: 5
+Winning connection length s: 5
+AI timeout t: 1
+Player 1 depth: 2
+Player 1 algo: ALPHABETA
+Player 1 heuristic: Simple 
+Player 2 depth: 6
+Player 2 algo: ALPHABETA
+Player 2 heuristic: Complex 
+
+The number of games played was: 10
+e1 (Simple Heuristic) won a total of 2 times, or 20.0 percent of the time. 
+e2 (Complex Heuristic) won a total of 8 times, or 80.0 percent of the time. 
+There was a total of 0 ties.
+
+Average evaluation times: 0.5161428802532467
+Average states evaluated per game: 6281.7
+Average of average depths: 3.6763528066749225
+Average total states evaluated at depth 1: 290.4
+Average total states evaluated at depth 2: 1185.2
+Average total states evaluated at depth 3: 278.1
+Average total states evaluated at depth 4: 259.3
+Average total states evaluated at depth 5: 18.1
+Average total states evaluated at depth 6: 4250.6
+Average ARD per game: 1.5437333863186318
+The average number of moves per game: 10.7

@@ -311,7 +311,7 @@ class Game:
         result = self.is_end()
         elapsed_t = time.time() - start_time
         global DepthList
-        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.2:
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.3:
             if eval_method == self.SIMPLE_EVAL:
                 global SimpleCounter
                 SimpleCounter += 1
@@ -367,7 +367,7 @@ class Game:
         result = self.is_end()
         elapsed_t = time.time() - start_time
         global DepthList
-        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.2:
+        if depth == 0 or result != None or elapsed_t >= self.ai_timeout-.3:
             if eval_method == self.SIMPLE_EVAL:
                 global SimpleCounter
                 SimpleCounter += 1
@@ -420,7 +420,7 @@ class Game:
     # The idea is to check all rows/columns/diagonals
     # It will add 2 to the score if we see our piece in a given position
     # and subtract 2 to the score if we see an opponents piece
-    def simple_heuristic(self):        
+    def simple_heuristic(self):
         score = 0
 
         # Rows
@@ -450,8 +450,8 @@ class Game:
 
         # Diagonals (right to left)
         for d in range(len(self.other_diagonal_starting_positions)):
-            st_x = self.other_diagonal_starting_positions[d][0]
-            st_y = self.other_diagonal_starting_positions[d][1]
+            st_x = self.diagonal_starting_positions[d][0]
+            st_y = self.diagonal_starting_positions[d][1]
             s = 0
             while (st_x > -1 and st_y < self.n):
                 s = self.simple_heuristic_evaluator(st_x, st_y, s)
@@ -736,7 +736,7 @@ class Game:
 
             if self.player_turn == 'X':
                 if (px_algo == self.MINIMAX):
-                     if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
+                    if ((player_x == self.HUMAN and self.recommend == True) or (player_x == self.AI)):
                         DepthList = [0] * self.d1
                         (_, x, y, ARD) = self.minimax(self.d1, self.d1,start, px_eval, max=False)
                 else:
@@ -826,11 +826,11 @@ class Game:
             f.write(F'Evaluation time: {round(end - start, 7)}s \n')
 
             if(ComplexCounter != 0):
-                 totalStatesEvaluated += ComplexCounter
-                 f.write(str(ComplexCounter) + " states were evaluated by the heuristic function\n")
+                totalStatesEvaluated += ComplexCounter
+                f.write(str(ComplexCounter) + " states were evaluated by the heuristic function\n")
             if(SimpleCounter != 0):
-                 totalStatesEvaluated += SimpleCounter
-                 f.write(str(SimpleCounter) + " states were evaluated by the heuristic function\n")
+                totalStatesEvaluated += SimpleCounter
+                f.write(str(SimpleCounter) + " states were evaluated by the heuristic function\n")
 
             if self.player_turn == 'X':
                 for z in range (0, self.d1):
@@ -1042,10 +1042,12 @@ def playrtimes(r, game_config):
 
 def main():
     game_config = "config.ini"
-    generateScoreBoardFile = False
+    generateScoreBoardFile = True
 
     if (generateScoreBoardFile == True):
-        playrtimes(1, game_config)
+        playrtimes(5, game_config)
+        ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
+        g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
     else:
         ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
         g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)

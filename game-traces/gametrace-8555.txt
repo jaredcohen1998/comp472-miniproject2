@@ -1,0 +1,366 @@
+The board size is: 8
+The number of blocks are: 5
+The winning connection length is: 5
+The AI timeout is: 5
+The blocks are positioned at: [[7, 5], [4, 4], [3, 5], [7, 1], [4, 3]]
+Player 1 is an AI
+The maximum depth of the adversarial search for player 1 is: 2
+Player 1 uses alpha-beta
+Player 1 uses the simple heuristic function 
+Player 2 is an AI
+The maximum depth of the adversarial search for player 2 is: 6
+Player 2 uses alpha-beta
+Player 2 uses the complex heuristic function 
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+1   |     |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+
+
+Player X under AI control plays: A 1
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+1   |  X  |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+Evaluation time: 0.1229975s 
+175 states were evaluated by the heuristic function
+States evaluated at depth 2: 175
+States evaluated at depth 1: 0
+This gives an average depth of: 2.0
+The average recursion depth is: 2.0
+
+
+Player O under AI control plays: F 0
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |     |     |     |     |     |  O  |     |     | 
+-----------------------------------------------------
+1   |  X  |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+Evaluation time: 4.8835933s 
+5631 states were evaluated by the heuristic function
+States evaluated at depth 6: 5436
+States evaluated at depth 5: 1
+States evaluated at depth 4: 26
+States evaluated at depth 3: 55
+States evaluated at depth 2: 56
+States evaluated at depth 1: 57
+This gives an average depth of: 5.8708932694015274
+The average recursion depth is: 1.0217826354679804
+
+
+Player X under AI control plays: A 2
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |     |     |     |     |     |  O  |     |     | 
+-----------------------------------------------------
+1   |  X  |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |  X  |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+Evaluation time: 0.12837s 
+168 states were evaluated by the heuristic function
+States evaluated at depth 2: 168
+States evaluated at depth 1: 0
+This gives an average depth of: 2.0
+The average recursion depth is: 2.0
+
+
+Player O under AI control plays: G 0
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |     |     |     |     |     |  O  |  O  |     | 
+-----------------------------------------------------
+1   |  X  |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |  X  |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+Evaluation time: 4.8806956s 
+5536 states were evaluated by the heuristic function
+States evaluated at depth 6: 5340
+States evaluated at depth 5: 0
+States evaluated at depth 4: 34
+States evaluated at depth 3: 53
+States evaluated at depth 2: 54
+States evaluated at depth 1: 55
+This gives an average depth of: 5.870303468208093
+The average recursion depth is: 1.027281746031746
+
+
+Player X under AI control plays: A 3
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |     |     |     |     |     |  O  |  O  |     | 
+-----------------------------------------------------
+1   |  X  |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |  X  |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |  X  |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+Evaluation time: 0.1309993s 
+161 states were evaluated by the heuristic function
+States evaluated at depth 2: 161
+States evaluated at depth 1: 0
+This gives an average depth of: 2.0
+The average recursion depth is: 2.0
+
+
+Player O under AI control plays: D 0
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |     |     |     |  O  |     |  O  |  O  |     | 
+-----------------------------------------------------
+1   |  X  |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |  X  |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |  X  |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+Evaluation time: 4.8747783s 
+5223 states were evaluated by the heuristic function
+States evaluated at depth 6: 5041
+States evaluated at depth 5: 0
+States evaluated at depth 4: 26
+States evaluated at depth 3: 51
+States evaluated at depth 2: 52
+States evaluated at depth 1: 53
+This gives an average depth of: 5.870189546237794
+The average recursion depth is: 1.0283119658119657
+
+
+Player X under AI control plays: A 0
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |  X  |     |     |  O  |     |  O  |  O  |     | 
+-----------------------------------------------------
+1   |  X  |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |  X  |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |  X  |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+Evaluation time: 0.0949991s 
+104 states were evaluated by the heuristic function
+States evaluated at depth 2: 104
+States evaluated at depth 1: 0
+This gives an average depth of: 2.0
+The average recursion depth is: 2.0
+
+
+Player O under AI control plays: C 0
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |  X  |     |  O  |  O  |     |  O  |  O  |     | 
+-----------------------------------------------------
+1   |  X  |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |  X  |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |  X  |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |     |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+Evaluation time: 4.8896258s 
+5026 states were evaluated by the heuristic function
+States evaluated at depth 6: 4848
+States evaluated at depth 5: 0
+States evaluated at depth 4: 28
+States evaluated at depth 3: 49
+States evaluated at depth 2: 50
+States evaluated at depth 1: 51
+This gives an average depth of: 5.86908077994429
+The average recursion depth is: 1.0232307692307692
+
+
+Player X under AI control plays: A 4
+
+ 
+ Drawing Current Board: 
+ 
+
+    |  A  |  B  |  C  |  D  |  E  |  F  |  G  |  H  |  
+-----------------------------------------------------
+0   |  X  |     |  O  |  O  |     |  O  |  O  |     | 
+-----------------------------------------------------
+1   |  X  |     |     |     |     |     |     |  ~  | 
+-----------------------------------------------------
+2   |  X  |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+3   |  X  |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+4   |  X  |     |     |     |  ~  |     |     |     | 
+-----------------------------------------------------
+5   |     |     |     |  ~  |     |     |     |  ~  | 
+-----------------------------------------------------
+6   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+7   |     |     |     |     |     |     |     |     | 
+-----------------------------------------------------
+
+Evaluation time: 0.0579989s 
+51 states were evaluated by the heuristic function
+States evaluated at depth 2: 50
+States evaluated at depth 1: 1
+This gives an average depth of: 1.9803921568627452
+The average recursion depth is: 1.0
+
+The winner is X!
+
+
+The average time taken per heuristic was: 2.2293397555555554
+The total number of states evaluated was: 22075
+The average of the average depths was: 3.717873246739384
+Total states evaluated at depth 1: 217
+Total states evaluated at depth 2: 870
+Total states evaluated at depth 3: 208
+Total states evaluated at depth 4: 114
+Total states evaluated at depth 5: 1
+Total states evaluated at depth 6: 20665
+The average ARD of the moves taken in the game was: 1.4556230129491623
+The total number of moves taken in the game was: 9
+
