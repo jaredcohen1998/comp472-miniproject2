@@ -962,7 +962,7 @@ def playrtimes(r, game_config):
         scoreFile.write("Player 2 heuristic: Simple \n")
 
     if (g != None):
-        for _ in (1, r):
+        for _ in range (r):
             ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
             g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
 
@@ -975,14 +975,14 @@ def playrtimes(r, game_config):
     # g .a2 = switchAlphaBetaHelper
 
     if (g != None):
-        for _ in(1, r):
+        for _ in range (r):
             ax, ao,  px, po, px_e, po_e, g = GameBuilder.build_game(game_config)
             switchDepthHelper = g.d1
             g.d1 = g.d2
             g.d2 = switchDepthHelper
             switchAlphaBetaHelper = g.a1
             g.a1 = g.a2
-            g .a2 = switchAlphaBetaHelper
+            g.a2 = switchAlphaBetaHelper
             g.play(px_algo = ao, po_algo = ax , player_x=po, player_o=px, px_eval=po_e, po_eval=px_e)
 
     scoreFile.write("\nThe number of games played was: " + str(2*r) + "\n")
@@ -996,8 +996,8 @@ def playrtimes(r, game_config):
             counte2 += 1
         elif(winnerTracker[win] == '.'):
             countTie += 1
-    scoreFile.write("e1 won a total of " + str(counte1) + " times, or " + str(counte1/gameCounterTracker) + " percent of the time. \n")
-    scoreFile.write("e2 won a total of " + str(counte2) + " times, or " + str(counte2/gameCounterTracker) + " percent of the time. \n")
+    scoreFile.write("e1 won a total of " + str(counte1) + " times, or " + str(counte1/gameCounterTracker*100) + " percent of the time. \n")
+    scoreFile.write("e2 won a total of " + str(counte2) + " times, or " + str(counte2/gameCounterTracker*100) + " percent of the time. \n")
     scoreFile.write("There was a total of " + str(countTie) + " ties.\n")
     scoreFile.write("\nAverage evaluation times: " + str(sum(averageTimeTracker)/len(averageTimeTracker)) + "\n")
     scoreFile.write("Average states evaluated per game: " + str(sum(totalStatesTracker)/len(totalStatesTracker))+ "\n")
@@ -1019,7 +1019,7 @@ def main():
     #if (g != None):
      #   for _ in (0, 5):
       #      g.play(px_algo = ax, po_algo = ao , player_x=px, player_o=po, px_eval=px_e, po_eval=po_e)
-    playrtimes(2, game_config)
+    playrtimes(1, game_config)
 
 if __name__ == "__main__":
     main()
